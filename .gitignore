@@ -1,0 +1,262 @@
+# Sora Invite Queue - Comprehensive .gitignore
+# ================================================
+
+# Operating System Files
+# ----------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE and Editor Files
+# -------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.vs/
+.vscode-test/
+
+# Node.js Dependencies
+# --------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.npm
+.eslintcache
+.pnpm-debug.log*
+
+# Build Outputs
+# -------------
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+.vercel/
+
+# Environment Variables & Secrets
+# ------------------------------
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+*.key
+*.pem
+*.p12
+*.pfx
+config/secrets.json
+secrets.json
+
+# Database & Backend Specific
+# ---------------------------
+# Supabase local development
+.supabase/
+supabase/.branches/
+supabase/.temp/
+supabase/docker/
+# Database dumps and backups
+*.sql.gz
+*.sql.bak
+*.dump
+# Local database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Frontend Specific (React/Vite)
+# ------------------------------
+# Vite build cache
+.vite/
+vite.config.js.timestamp-*
+# React/JSX compiled files
+*.tsbuildinfo
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output/
+# Storybook build
+storybook-static/
+
+# Package Manager Files
+# --------------------
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.pnp
+.pnp.js
+
+# TypeScript
+# ----------
+*.tsbuildinfo
+.tsbuildinfo
+
+# Testing
+# -------
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+test-results.xml
+jest-coverage/
+
+# Logs
+# ----
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime and Temporary Files
+# ---------------------------
+*.pid
+*.seed
+*.pid.lock
+.grunt/
+lib-cov/
+.tmp/
+.temp/
+tmp/
+temp/
+
+# Cloudflare and Deployment
+# -------------------------
+# Wrangler
+.wrangler/
+worker.js
+# Cloudflare Pages
+ui/functions/
+_routes.json
+# Deployment artifacts
+deploy-output/
+.deploy/
+
+# Analytics and Monitoring
+# ------------------------
+.sentry-native/
+.sentry/
+analytics-data/
+
+# Documentation Generation
+# ------------------------
+docs/api/
+.docusaurus/
+.cache/
+
+# Backup Files
+# ------------
+*.bak
+*.backup
+*.old
+*.orig
+
+# Project Specific
+# ----------------
+# Local development assets
+assets/temp/
+uploads/temp/
+# Generated API documentation
+api-docs/generated/
+# Local configuration overrides
+local.config.js
+local.config.ts
+# Development database seeds with real data
+seeds/production-data/
+# Local SSL certificates for development
+certs/local/
+
+# Security and Sensitive Data
+# ---------------------------
+# API keys and tokens
+.api-keys
+.tokens
+# LinkedIn OAuth credentials
+linkedin-config.json
+# Stripe test keys (still sensitive)
+stripe-config.json
+# GitHub tokens
+.github-token
+# Service account keys
+service-account-*.json
+# JWT secrets
+jwt-*.key
+
+# Performance and Profiling
+# -------------------------
+.profile/
+profiler-output/
+benchmark-results/
+performance-logs/
+
+# MacOS Specific
+# --------------
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows Specific
+# ----------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux Specific
+# --------------
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Git Specific
+# ------------
+.git/
+.gitattributes.local
+.gitconfig.local
+
+# Cache Directories
+# -----------------
+.cache/
+.parcel-cache/
+.npm/
+.yarn/
+.pnpm-store/
+
+# Editor Backup Files
+# -------------------
+*~
+.#*
+#*#
+.*.sw[a-z]
+*.un~
+Session.vim
+.netrwhist

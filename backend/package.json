@@ -1,0 +1,18 @@
+{
+  "name": "sora-queue-backend",
+  "version": "1.0.0", 
+  "description": "Sora Invite Queue - Backend Database Schema and Functions",
+  "type": "module",
+  "scripts": {
+    "db:setup": "supabase db reset --linked",
+    "db:migrate": "supabase db push",
+    "db:seed": "supabase db reset --linked && supabase db push",
+    "functions:deploy": "supabase functions deploy --no-verify-jwt",
+    "dev": "supabase start && supabase functions serve"
+  },
+  "devDependencies": {
+    "supabase": "^1.123.4",
+    "@supabase/supabase-js": "^2.38.4",
+    "typescript": "^5.2.2"
+  }
+}
