@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { QueueCard } from '@/components/QueueCard';
+import { AuthForm } from '@/components/AuthForm';
 import { useQueue } from '@/hooks/useQueue';
-import { getCurrentUser } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
+import { useAuth } from '@/hooks/useAuth';
+import { signOut } from '@/lib/supabase';
 import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const { user, isLoading: isAuthLoading } = useAuth();
   
   const {
     position,
@@ -20,16 +20,7 @@ function App() {
     isConnected,
   } = useQueue();
 
-  // Check authentication status
-  useEffect(() => {
-    const checkAuth = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-      setIsAuthLoading(false);
-    };
 
-    checkAuth();
-  }, []);
 
   // Show error toasts
   useEffect(() => {
@@ -61,13 +52,19 @@ function App() {
     }
   };
 
-  const handleSignIn = () => {
-    // For demo purposes, simulate sign in
-    // In real implementation, this would use Supabase auth
-    toast('Authentication would redirect to LinkedIn OAuth', {
-      icon: 'ℹ️',
-      duration: 4000,
-    });
+  const handleSignOut = async () => {
+    try {
+      const { error } = await signOut();
+      if (error) throw error;
+      toast.success('Signed out successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Error signing out');
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    // Auth state change will be handled by the listener
+    toast.success('Authentication successful!');
   };
 
   if (isAuthLoading) {
@@ -96,22 +93,33 @@ function App() {
             </div>
             
             {!user ? (
-              <button
-                onClick={handleSignIn}
-                className="btn-primary"
-              >
-                Sign in with LinkedIn
-              </button>
+              <div className="text-sm text-gray-600">
+                Sign in to join the queue
+              </div>
             ) : (
               <div className="flex items-center gap-3">
                 <div className="text-sm text-gray-600">
-                  Welcome, {user.email}
+                  Welcome, {user.user_metadata?.full_name || user.user_metadata?.name || user.email}
                 </div>
-                <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                  <span className="text-sm font-medium text-primary-600">
-                    {user.email?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                {user.user_metadata?.avatar_url ? (
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                    <span className="text-sm font-medium text-primary-600">
+                      {(user.user_metadata?.full_name || user.user_metadata?.name || user.email)?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <button
+                  onClick={handleSignOut}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition"
+                >
+                  Sign out
+                </button>
               </div>
             )}
           </div>
@@ -122,21 +130,17 @@ function App() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {!user ? (
           <div className="text-center">
-            <div className="max-w-md mx-auto card">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Sign in to Join the Queue
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Join the Sora Invite Queue
               </h2>
-              <p className="text-gray-600 mb-6">
-                Connect with your LinkedIn account to join our verified community 
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Connect with your LinkedIn account or email to join our verified community 
                 and access the fair distribution queue for Sora invitations.
               </p>
-              <button
-                onClick={handleSignIn}
-                className="btn-primary w-full"
-              >
-                Sign in with LinkedIn
-              </button>
             </div>
+            
+            <AuthForm onAuthSuccess={handleAuthSuccess} />
 
             {/* Public Stats */}
             {stats && (
