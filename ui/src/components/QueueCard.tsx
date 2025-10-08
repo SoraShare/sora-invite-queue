@@ -1,15 +1,14 @@
-import React from 'react';
 import { Clock, Users, TrendingUp, Zap } from 'lucide-react';
 import { QueuePosition, QueueStats } from '@/types/queue';
+import { config } from '@/lib/supabase';
 
 interface QueueCardProps {
   position: QueuePosition | null;
   stats: QueueStats;
   isInQueue: boolean;
   isLoading: boolean;
-  onJoinQueue: () => Promise<void>;
+  onQueryInvitationCode: () => Promise<void>;
   onLeaveQueue: () => Promise<void>;
-  isConnected: boolean;
 }
 
 export function QueueCard({ 
@@ -17,9 +16,8 @@ export function QueueCard({
   stats, 
   isInQueue, 
   isLoading, 
-  onJoinQueue, 
-  onLeaveQueue, 
-  isConnected 
+  onQueryInvitationCode, 
+  onLeaveQueue
 }: QueueCardProps) {
   const formatWaitTime = (hours: number): string => {
     if (hours < 1) return 'Less than 1 hour';
@@ -41,15 +39,6 @@ export function QueueCard({
 
   return (
     <div className="card max-w-2xl mx-auto">
-      {/* Connection Status */}
-      <div className={`flex items-center gap-2 mb-4 text-sm ${
-        isConnected ? 'text-success-600' : 'text-warning-600'
-      }`}>
-        <div className={`w-2 h-2 rounded-full ${
-          isConnected ? 'bg-success-500 animate-pulse' : 'bg-warning-500'
-        }`} />
-        {isConnected ? 'Connected - Live updates' : 'Reconnecting...'}
-      </div>
 
       {/* Main Queue Status */}
       {isInQueue && position ? (
@@ -69,8 +58,12 @@ export function QueueCard({
             Position #{position.position}
           </h2>
           
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 mb-2">
             Estimated wait: {formatWaitTime(position.estimatedWaitTime)}
+          </p>
+
+          <p className="text-sm text-blue-600 mb-4">
+            🔔 You'll be automatically notified when an invitation code becomes available!
           </p>
           
           <div className="bg-gray-50 rounded-lg p-4 mb-4">
@@ -93,89 +86,109 @@ export function QueueCard({
       ) : (
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Join the Sora Invite Queue
+            Get Your Sora Invitation Code
           </h2>
-          <p className="text-gray-600 mb-6">
-            Fair, transparent access to OpenAI Sora invitations through our community-driven platform.
+          <p className="text-gray-600 mb-4">
+            Click below to query for an available invitation code. If none are available, you'll automatically join the queue.
           </p>
 
+          <div className="bg-blue-50 rounded-lg p-4 mb-4">
+            <h3 className="font-medium text-blue-900 mb-2">How it works:</h3>
+            <ul className="text-sm text-blue-800 space-y-1 text-left max-w-md mx-auto">
+              <li>• Click "Query Invitation Code" to check for available codes</li>
+              <li>• If codes are available, you'll receive one immediately</li>
+              <li>• If not available, you'll join the queue automatically</li>
+              <li>• Queue operates on a first-come, first-served basis</li>
+            </ul>
+          </div>
+
           <button
-            onClick={onJoinQueue}
-            disabled={isLoading || stats.availableCodes === 0}
-            className="btn-primary text-lg px-8 py-3"
+            onClick={onQueryInvitationCode}
+            disabled={isLoading}
+            className="btn-primary text-lg px-8 py-3 mb-4"
           >
-            {isLoading ? 'Joining...' : 'Join Queue'}
+            {isLoading ? 'Processing...' : 'Query Invitation Code'}
           </button>
 
-          {stats.availableCodes === 0 && (
-            <p className="text-warning-600 text-sm mt-2">
-              No codes currently available. New codes are added as community members return them.
+          {(stats?.availableCodes ?? 0) === 0 && (
+            <p className="text-blue-600 text-sm">
+              💡 No codes currently available - clicking above will join you to the queue
+            </p>
+          )}
+
+          {(stats?.availableCodes ?? 0) > 0 && (
+            <p className="text-green-600 text-sm">
+              ✨ {stats?.availableCodes} invitation code{stats?.availableCodes === 1 ? '' : 's'} available - click above to get yours!
             </p>
           )}
         </div>
       )}
 
       {/* Queue Statistics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-6 border-t border-gray-200">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
-            <Users className="w-4 h-4" />
-            <span className="text-sm">In Queue</span>
+      {config.queueStatsEnabled && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-6 border-t border-gray-200">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
+              <Users className="w-4 h-4" />
+              <span className="text-sm">In Queue</span>
+            </div>
+            <div className="text-xl font-semibold text-gray-900">
+              {isLoading ? '...' : (stats?.totalInQueue ?? 0).toLocaleString()}
+            </div>
           </div>
-          <div className="text-xl font-semibold text-gray-900">
-            {isLoading ? '...' : stats.totalInQueue.toLocaleString()}
-          </div>
-        </div>
 
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
-            <Clock className="w-4 h-4" />
-            <span className="text-sm">Avg Wait</span>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm">Avg Wait</span>
+            </div>
+            <div className="text-xl font-semibold text-gray-900">
+              {isLoading ? '...' : formatWaitTime(stats?.averageWaitTime ?? 0)}
+            </div>
           </div>
-          <div className="text-xl font-semibold text-gray-900">
-            {isLoading ? '...' : formatWaitTime(stats.averageWaitTime)}
-          </div>
-        </div>
 
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
-            <TrendingUp className="w-4 h-4" />
-            <span className="text-sm">Processed</span>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
+              <TrendingUp className="w-4 h-4" />
+              <span className="text-sm">Processed</span>
+            </div>
+            <div className="text-xl font-semibold text-gray-900">
+              {isLoading ? '...' : (stats?.totalProcessed ?? 0).toLocaleString()}
+            </div>
           </div>
-          <div className="text-xl font-semibold text-gray-900">
-            {isLoading ? '...' : stats.totalProcessed.toLocaleString()}
-          </div>
-        </div>
 
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
-            <Zap className="w-4 h-4" />
-            <span className="text-sm">Available</span>
-          </div>
-          <div className="text-xl font-semibold text-gray-900">
-            {isLoading ? '...' : stats.availableCodes.toLocaleString()}
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
+              <Zap className="w-4 h-4" />
+              <span className="text-sm">Available</span>
+            </div>
+            <div className="text-xl font-semibold text-gray-900">
+              {isLoading ? '...' : (stats?.availableCodes ?? 0).toLocaleString()}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Community Stats */}
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>Community return rate</span>
-          <span className="font-medium text-gray-900">
-            {isLoading ? '...' : `${stats.returnRate}%`}
-          </span>
+      {config.communityReturnRateEnabled && (
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between text-sm text-gray-600">
+            <span>Community return rate</span>
+            <span className="font-medium text-gray-900">
+              {isLoading ? '...' : `${stats?.returnRate ?? 0}%`}
+            </span>
+          </div>
+          <div className="mt-2 bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-success-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${Math.min(stats?.returnRate ?? 0, 100)}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Higher return rates mean faster queue processing for everyone
+          </p>
         </div>
-        <div className="mt-2 bg-gray-200 rounded-full h-2">
-          <div 
-            className="bg-success-500 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${Math.min(stats.returnRate, 100)}%` }}
-          />
-        </div>
-        <p className="text-xs text-gray-500 mt-1">
-          Higher return rates mean faster queue processing for everyone
-        </p>
-      </div>
+      )}
     </div>
   );
 }

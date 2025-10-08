@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { QueueService } from '@/services/queueService';
 import { QueuePosition, QueueStats } from '@/types/queue';
-import { getCurrentUser } from '@/lib/supabase';
 
 export interface UseQueueReturn {
   position: QueuePosition | null;
@@ -9,32 +8,25 @@ export interface UseQueueReturn {
   isLoading: boolean;
   isInQueue: boolean;
   error: string | null;
-  joinQueue: () => Promise<void>;
+  queryInvitationCode: () => Promise<string | null>;
   leaveQueue: () => Promise<void>;
   refreshStatus: () => Promise<void>;
-  isConnected: boolean;
 }
 
-export function useQueue(): UseQueueReturn {
+export function useQueue(userId?: string): UseQueueReturn {
   const [position, setPosition] = useState<QueuePosition | null>(null);
   const [stats, setStats] = useState<QueueStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  // Get current user ID
-  useEffect(() => {
-    const getUserId = async () => {
-      const user = await getCurrentUser();
-      setUserId(user?.id || null);
-    };
-    getUserId();
-  }, []);
 
   // Load queue status
   const loadQueueStatus = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setPosition(null);
+      setStats(null);
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -46,44 +38,53 @@ export function useQueue(): UseQueueReturn {
         setPosition(response.data.position);
         setStats(response.data.stats);
       } else {
-        // User not in queue, just get stats
         const stats = await QueueService.getQueueStats();
         setStats(stats);
         setPosition(null);
       }
     } catch (err) {
       setError('Failed to load queue status');
-      console.error('Error loading queue status:', err);
     } finally {
       setIsLoading(false);
     }
   }, [userId]);
 
-  // Join queue
-  const joinQueue = useCallback(async () => {
+  // Query for invitation code - try to get one first, join queue if none available
+  const queryInvitationCode = useCallback(async (): Promise<string | null> => {
     if (!userId) {
       setError('Please login first');
-      return;
+      return null;
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      // Check if user is premium (simplified - would get from user profile)
+      // First try to get an available invitation code
+      const codeResponse = await QueueService.getAvailableInvitationCode(userId);
+      
+      if (codeResponse.success && codeResponse.code) {
+        // Got a code! Refresh status to show updated stats
+        await loadQueueStatus();
+        return codeResponse.code;
+      }
+
+      // No codes available, join the queue
       const isPremium = false; // TODO: Get from user profile
+      const joinResponse = await QueueService.joinQueue(userId, isPremium);
       
-      const response = await QueueService.joinQueue(userId, isPremium);
-      
-      if (response.success && response.data) {
-        setPosition(response.data.position);
-        await loadQueueStatus(); // Refresh stats
+      if (joinResponse.success && joinResponse.data) {
+        setPosition(joinResponse.data.position);
+        const freshStats = await QueueService.getQueueStats();
+        setStats(freshStats);
+        return null;
       } else {
-        setError(response.error || 'Failed to join queue');
+        setError(joinResponse.error || 'Failed to join queue');
+        return null;
       }
     } catch (err) {
-      setError('Failed to join queue');
-      console.error('Error joining queue:', err);
+      setError('Failed to query invitation code');
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -101,13 +102,12 @@ export function useQueue(): UseQueueReturn {
       
       if (response.success) {
         setPosition(null);
-        await loadQueueStatus(); // Refresh stats
+        await loadQueueStatus();
       } else {
         setError(response.error || 'Failed to leave queue');
       }
     } catch (err) {
       setError('Failed to leave queue');
-      console.error('Error leaving queue:', err);
     } finally {
       setIsLoading(false);
     }
@@ -118,57 +118,16 @@ export function useQueue(): UseQueueReturn {
     await loadQueueStatus();
   }, [loadQueueStatus]);
 
-  // Set up real-time subscriptions
-  useEffect(() => {
-    if (!userId) return;
-
-    let subscription: any = null;
-
-    const setupRealtimeSubscription = () => {
-      try {
-        subscription = QueueService.subscribeToQueueUpdates(userId, () => {
-          // Refresh status when queue updates
-          loadQueueStatus();
-        });
-
-        // Monitor connection status
-        subscription.on('system', {}, (status: string) => {
-          setIsConnected(status === 'online');
-        });
-
-        setIsConnected(true);
-      } catch (err) {
-        console.error('Error setting up realtime subscription:', err);
-        setIsConnected(false);
-      }
-    };
-
-    setupRealtimeSubscription();
-
-    // Cleanup subscription on unmount
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-    };
-  }, [userId, loadQueueStatus]);
-
-  // Load initial data
+  // Load initial data when userId changes
   useEffect(() => {
     if (userId) {
       loadQueueStatus();
+    } else {
+      setPosition(null);
+      setStats(null);
+      setError(null);
+      setIsLoading(false);
     }
-  }, [userId, loadQueueStatus]);
-
-  // Auto-refresh every 30 seconds as fallback
-  useEffect(() => {
-    if (!userId) return;
-
-    const interval = setInterval(() => {
-      loadQueueStatus();
-    }, 30000);
-
-    return () => clearInterval(interval);
   }, [userId, loadQueueStatus]);
 
   return {
@@ -177,9 +136,8 @@ export function useQueue(): UseQueueReturn {
     isLoading,
     isInQueue: !!position,
     error,
-    joinQueue,
+    queryInvitationCode,
     leaveQueue,
     refreshStatus,
-    isConnected,
   };
 }

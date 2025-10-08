@@ -2,7 +2,7 @@
 -- This creates sample data to test the queue management system
 
 -- Ensure we have some test invitation codes available
-INSERT INTO invitation_codes (code_hash, status, created_at) VALUES
+INSERT INTO public.invitation_codes (code_hash, status, created_at) VALUES
   ('test_code_hash_001', 'available', now()),
   ('test_code_hash_002', 'available', now()),
   ('test_code_hash_003', 'available', now()),
@@ -18,11 +18,11 @@ INSERT INTO invitation_codes (code_hash, status, created_at) VALUES
 -- using proper Supabase Auth signup flow. Seed data only includes invitation codes.
 -- User-related data (submitted_by, allocated_to) will be set when actual users interact with the system.
 
--- Ensure queue positions are properly calculated
-SELECT recalculate_queue_positions();
+-- Queue positions are now automatically managed by database triggers
+-- No manual recalculation needed
 
 -- Clean up any expired entries
-SELECT cleanup_expired_entries();
+SELECT public.cleanup_expired_entries();
 
 -- Show current queue statistics
-SELECT * FROM queue_stats_view;
+SELECT * FROM public.queue_stats_view;

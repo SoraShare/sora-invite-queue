@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { QueueCard } from '@/components/QueueCard';
 import { AuthForm } from '@/components/AuthForm';
 import { useQueue } from '@/hooks/useQueue';
@@ -15,12 +15,9 @@ function App() {
     isLoading,
     isInQueue,
     error,
-    joinQueue,
+    queryInvitationCode,
     leaveQueue,
-    isConnected,
-  } = useQueue();
-
-
+  } = useQueue(user?.id);
 
   // Show error toasts
   useEffect(() => {
@@ -29,15 +26,19 @@ function App() {
     }
   }, [error]);
 
-  const handleJoinQueue = async () => {
+  const handleQueryInvitationCode = async () => {
     if (!user) {
-      toast.error('Please sign in to join the queue');
+      toast.error('Please sign in first');
       return;
     }
 
     try {
-      await joinQueue();
-      toast.success('Successfully joined the queue!');
+      const invitationCode = await queryInvitationCode();
+      if (invitationCode) {
+        toast.success(`Invitation code: ${invitationCode}`);
+      } else if (!error) {
+        toast.success('Joined the queue! You will be notified when a code is available.');
+      }
     } catch (err) {
       // Error is handled by the hook
     }
@@ -54,33 +55,39 @@ function App() {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await signOut();
-      if (error) throw error;
-      toast.success('Signed out successfully');
+      const result = await signOut();
+      if (result && result.error) {
+        toast.error('Error signing out');
+      } else {
+        toast.success('Signed out successfully');
+      }
     } catch (error: any) {
-      toast.error(error.message || 'Error signing out');
+      toast.error('Error signing out');
     }
   };
 
   const handleAuthSuccess = () => {
-    // Auth state change will be handled by the listener
-    toast.success('Authentication successful!');
+    // Authentication successful
   };
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading authentication...</p>
+          <p className="text-sm text-gray-500 mt-2">Check console for debug info</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
       <Toaster position="top-right" />
       
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div>
@@ -116,7 +123,8 @@ function App() {
                 )}
                 <button
                   onClick={handleSignOut}
-                  className="text-sm text-gray-500 hover:text-gray-700 transition"
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-100"
+                  aria-label="Sign out of your account"
                 >
                   Sign out
                 </button>
@@ -126,8 +134,9 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Main Content - Scrollable */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {!user ? (
           <div className="text-center">
             <div className="mb-8">
@@ -189,15 +198,15 @@ function App() {
             }}
             isInQueue={isInQueue}
             isLoading={isLoading}
-            onJoinQueue={handleJoinQueue}
+            onQueryInvitationCode={handleQueryInvitationCode}
             onLeaveQueue={handleLeaveQueue}
-            isConnected={isConnected}
           />
         )}
+        </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-16">
+      {/* Footer - Sticky at bottom */}
+      <footer className="bg-white border-t border-gray-200 flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-gray-600">
             <p className="text-sm">

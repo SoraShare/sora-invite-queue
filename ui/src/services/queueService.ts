@@ -14,33 +14,52 @@ export class QueueService {
    */
   static async joinQueue(userId: string, isPremium: boolean = false): Promise<QueueJoinResponse> {
     try {
-      // Check if user is already in queue
-      const { data: existingEntry } = await supabase
+      const { data: userProfile, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (userError && userError.code !== 'PGRST116') {
+        return {
+          success: false,
+          error: `User profile error: ${userError.message}`
+        };
+      }
+
+      if (!userProfile) {
+        return {
+          success: false,
+          error: 'User profile not found. Please refresh the page and try again.'
+        };
+      }
+
+      const { data: existingEntries, error: checkError } = await supabase
         .from('queue_entries')
         .select('*')
         .eq('user_id', userId)
-        .eq('status', 'waiting')
-        .single();
+        .eq('status', 'waiting');
 
-      if (existingEntry) {
+      if (checkError) {
+        return {
+          success: false,
+          error: `Database error: ${checkError.message}`
+        };
+      }
+
+      if (existingEntries && existingEntries.length > 0) {
         return {
           success: false,
           error: 'You are already in the queue'
         };
       }
 
-      // Get next position based on priority
-      const position = await this.getNextPosition(isPremium);
-
-      // Insert new queue entry
       const { data: queueEntry, error: insertError } = await supabase
         .from('queue_entries')
         .insert({
           user_id: userId,
-          position: position,
           priority: isPremium,
-          status: 'waiting',
-          created_at: new Date().toISOString()
+          status: 'waiting'
         })
         .select('*')
         .single();
@@ -52,10 +71,7 @@ export class QueueService {
         };
       }
 
-      // Update all positions after this operation
-      await this.updateQueuePositions();
-
-      // Get the current position info
+      // Get the current position info (position was set by database trigger)
       const positionInfo = await this.getQueuePosition(userId);
 
       return {
@@ -93,9 +109,7 @@ export class QueueService {
         };
       }
 
-      // Update positions for remaining queue members
-      await this.updateQueuePositions();
-
+      // Positions are automatically updated by database trigger
       return { success: true };
     } catch (error) {
       console.error('Error leaving queue:', error);
@@ -111,36 +125,25 @@ export class QueueService {
    */
   static async getQueuePosition(userId: string): Promise<QueuePosition | null> {
     try {
-      const { data: entry } = await supabase
+      const { data: entry, error } = await supabase
         .from('queue_entries')
         .select('*')
         .eq('user_id', userId)
         .eq('status', 'waiting')
         .single();
 
-      if (!entry) return null;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return null;
+        }
+        throw error;
+      }
 
-      // Calculate actual position considering priority
-      const { count: priorityAhead } = await supabase
-        .from('queue_entries')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'waiting')
-        .eq('priority', true)
-        .lt('created_at', entry.created_at);
+      if (!entry) {
+        return null;
+      }
 
-      const { count: regularAhead } = await supabase
-        .from('queue_entries')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'waiting')
-        .eq('priority', false)
-        .lt('created_at', entry.created_at);
-
-      // Priority users go first, then regular users by timestamp
-      const actualPosition = entry.priority 
-        ? (priorityAhead || 0) + 1
-        : (await this.getPriorityCount()) + (regularAhead || 0) + 1;
-
-      // Calculate estimated wait time (simplified)
+      const actualPosition = entry.position;
       const estimatedWaitTime = this.calculateEstimatedWaitTime(actualPosition);
 
       return {
@@ -152,7 +155,6 @@ export class QueueService {
       };
 
     } catch (error) {
-      console.error('Error getting queue position:', error);
       return null;
     }
   }
@@ -162,40 +164,45 @@ export class QueueService {
    */
   static async getQueueStats(): Promise<QueueStats> {
     try {
-      // Get total in queue
-      const { count: totalInQueue } = await supabase
+      const { count: totalInQueue, error: queueError } = await supabase
         .from('queue_entries')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'waiting');
 
-      // Get total processed (allocated + completed)
-      const { count: totalProcessed } = await supabase
+      if (queueError) throw queueError;
+
+      const { count: totalProcessed, error: processedError } = await supabase
         .from('queue_entries')
         .select('*', { count: 'exact', head: true })
         .in('status', ['allocated', 'completed']);
 
-      // Get available codes
-      const { count: availableCodes } = await supabase
+      if (processedError) throw processedError;
+
+      const { count: availableCodes, error: codesError } = await supabase
         .from('invitation_codes')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'available');
 
-      // Calculate return rate (simplified)
-      const { count: totalAllocated } = await supabase
+      if (codesError) throw codesError;
+
+      const { count: totalAllocated, error: allocatedError } = await supabase
         .from('queue_entries')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'allocated');
 
-      const { count: totalReturned } = await supabase
+      if (allocatedError) throw allocatedError;
+
+      const { count: totalReturned, error: returnedError } = await supabase
         .from('invitation_codes')
         .select('*', { count: 'exact', head: true })
         .not('submitted_by', 'is', null);
+
+      if (returnedError) throw returnedError;
 
       const returnRate = totalAllocated && totalAllocated > 0 
         ? ((totalReturned || 0) / totalAllocated) * 100 
         : 0;
 
-      // Calculate average wait time (simplified - based on processing rate)
       const averageWaitTime = this.calculateAverageWaitTime(totalInQueue || 0);
 
       return {
@@ -207,7 +214,6 @@ export class QueueService {
       };
 
     } catch (error) {
-      console.error('Error getting queue stats:', error);
       return {
         totalInQueue: 0,
         averageWaitTime: 0,
@@ -215,6 +221,25 @@ export class QueueService {
         availableCodes: 0,
         returnRate: 0
       };
+    }
+  }
+
+  /**
+   * Check if user is in queue (simple check)
+   */
+  static async isUserInQueue(userId: string): Promise<boolean> {
+    try {
+      const { data } = await supabase
+        .from('queue_entries')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('status', 'waiting')
+        .limit(1);
+
+      return (data && data.length > 0) || false;
+    } catch (error) {
+      console.error('Error checking if user in queue:', error);
+      return false;
     }
   }
 
@@ -237,7 +262,6 @@ export class QueueService {
       };
 
     } catch (error) {
-      console.error('Error getting current status:', error);
       return {
         success: false,
         error: 'Failed to get queue status'
@@ -259,9 +283,7 @@ export class QueueService {
           table: 'queue_entries'
         },
         async (payload) => {
-          // Update positions when queue changes
-          await this.updateQueuePositions();
-          
+          // Positions are now managed by database triggers
           // If this affects the current user, trigger callback
           if ((payload.new as any)?.user_id === userId || (payload.old as any)?.user_id === userId) {
             callback(payload.new as QueueEntry);
@@ -272,69 +294,6 @@ export class QueueService {
   }
 
   // Private helper methods
-
-  /**
-   * Get next position in queue considering priority
-   */
-  private static async getNextPosition(isPriority: boolean): Promise<number> {
-    if (isPriority) {
-      const { count } = await supabase
-        .from('queue_entries')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'waiting')
-        .eq('priority', true);
-      
-      return (count || 0) + 1;
-    } else {
-      const { count: totalCount } = await supabase
-        .from('queue_entries')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'waiting');
-      
-      return (totalCount || 0) + 1;
-    }
-  }
-
-  /**
-   * Get count of priority users in queue
-   */
-  private static async getPriorityCount(): Promise<number> {
-    const { count } = await supabase
-      .from('queue_entries')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'waiting')
-      .eq('priority', true);
-    
-    return count || 0;
-  }
-
-  /**
-   * Update queue positions for all waiting entries
-   */
-  private static async updateQueuePositions(): Promise<void> {
-    try {
-      // Get all waiting entries ordered by priority and creation time
-      const { data: entries } = await supabase
-        .from('queue_entries')
-        .select('*')
-        .eq('status', 'waiting')
-        .order('priority', { ascending: false })
-        .order('created_at', { ascending: true });
-
-      if (!entries) return;
-
-      // Update positions
-      for (let i = 0; i < entries.length; i++) {
-        await supabase
-          .from('queue_entries')
-          .update({ position: i + 1 })
-          .eq('id', entries[i].id);
-      }
-
-    } catch (error) {
-      console.error('Error updating queue positions:', error);
-    }
-  }
 
   /**
    * Calculate estimated wait time based on position
@@ -353,6 +312,54 @@ export class QueueService {
     // Simplified calculation based on current queue length
     const processRate = 1; // codes per hour
     return queueLength > 0 ? queueLength / processRate : 0;
+  }
+
+  /**
+   * Get an available invitation code for a user
+   */
+  static async getAvailableInvitationCode(userId: string): Promise<{ success: boolean; code?: string; error?: string }> {
+    try {
+      // Check if there are any available codes
+      const { data: availableCode, error: codeError } = await supabase
+        .from('invitation_codes')
+        .select('*')
+        .eq('status', 'available')
+        .limit(1)
+        .single();
+
+      if (codeError) {
+        if (codeError.code === 'PGRST116') {
+          // No available codes
+          return { success: false, error: 'No invitation codes available' };
+        }
+        throw codeError;
+      }
+
+      // Mark the code as allocated to this user
+      const { error: updateError } = await supabase
+        .from('invitation_codes')
+        .update({ 
+          status: 'allocated',
+          allocated_to: userId,
+          allocated_at: new Date().toISOString()
+        })
+        .eq('id', availableCode.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      return { 
+        success: true, 
+        code: availableCode.code 
+      };
+
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.message || 'Failed to get invitation code' 
+      };
+    }
   }
 
   /**
@@ -433,9 +440,7 @@ export class QueueService {
         };
       }
 
-      // Update positions for remaining queue
-      await this.updateQueuePositions();
-
+      // Positions are automatically updated by database triggers
       return {
         success: true,
         allocated: nextEntry
