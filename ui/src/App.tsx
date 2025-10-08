@@ -3,11 +3,16 @@ import { QueueCard } from '@/components/QueueCard';
 import { AuthForm } from '@/components/AuthForm';
 import { useQueue } from '@/hooks/useQueue';
 import { useAuth } from '@/hooks/useAuth';
-import { signOut } from '@/lib/supabase';
 import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { 
+    user, 
+    isLoading: isAuthLoading, 
+    error: authError, 
+    signOut: handleAuthSignOut,
+    clearError: clearAuthError 
+  } = useAuth();
   
   const {
     position,
@@ -25,6 +30,14 @@ function App() {
       toast.error(error);
     }
   }, [error]);
+
+  // Show auth error toasts
+  useEffect(() => {
+    if (authError) {
+      toast.error(authError);
+      clearAuthError();
+    }
+  }, [authError, clearAuthError]);
 
   const handleQueryInvitationCode = async () => {
     if (!user) {
@@ -54,15 +67,11 @@ function App() {
   };
 
   const handleSignOut = async () => {
-    try {
-      const result = await signOut();
-      if (result && result.error) {
-        toast.error('Error signing out');
-      } else {
-        toast.success('Signed out successfully');
-      }
-    } catch (error: any) {
-      toast.error('Error signing out');
+    const result = await handleAuthSignOut();
+    if (result.success) {
+      toast.success('Signed out successfully');
+    } else {
+      toast.error(result.error || 'Error signing out');
     }
   };
 
@@ -75,8 +84,7 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading authentication...</p>
-          <p className="text-sm text-gray-500 mt-2">Check console for debug info</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );

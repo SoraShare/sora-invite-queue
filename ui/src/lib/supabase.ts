@@ -33,19 +33,12 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKe
 // Helper function to get current user
 export const getCurrentUser = async (): Promise<User | null> => {
   try {
-    console.log('Getting current user from Supabase...');
-    console.log('Supabase URL:', supabaseUrl);
-    console.log('Supabase Anon Key:', supabaseAnonKey ? 'Present' : 'Missing');
-    
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error) {
-      console.error('Error getting current user:', error);
       return null;
     }
-    console.log('Got user:', user || 'No user (not authenticated)');
     return user;
   } catch (error) {
-    console.error('Exception in getCurrentUser:', error);
     return null;
   }
 };
@@ -59,7 +52,6 @@ export const getUserProfile = async (userId: string) => {
     .single();
     
   if (error) {
-    console.error('Error getting user profile:', error);
     return null;
   }
   return data;
@@ -97,80 +89,112 @@ export const signInWithLinkedIn = async () => {
 
 export const signOut = async () => {
   try {
-
-    if (isDevelopment || isLocalSupabase) {
-      console.log('supabase.ts: signOut function called in development/local mode');
-      // Clear session from localStorage manually
-      localStorage.removeItem('sb-' + supabaseUrl.replace('http://', '').replace('https://', '').replace('/', '') + '-auth-token');
-    } else {
-      // Try the standard signOut first
-      const result = await supabase.auth.signOut();
-      console.log('supabase.ts: Standard signOut completed:', result);
-      return { error: result.error };
+    // Always try the standard Supabase signOut method first
+    // This should trigger the auth state change event properly
+    const result = await supabase.auth.signOut();
+    
+    // Additional cleanup for local development or if there are issues
+    if (isDevelopment || isLocalSupabase || result.error) {
+      // Clear all Supabase-related storage keys as backup
+      clearSupabaseStorage();
     }
     
-  } catch (err) {
-    console.error('supabase.ts: Exception in signOut:', err);
+    return { error: result.error };
+  } catch (err: any) {
+    // If standard signOut fails, force clear storage and trigger manual state change
+    clearSupabaseStorage();
+    
+    // Manually trigger auth state change as fallback
+    try {
+      // Force trigger the auth state change callback
+      window.dispatchEvent(new CustomEvent('supabase-signout'));
+    } catch (eventErr) {
+      console.error('Failed to dispatch signout event:', eventErr);
+    }
+    
+    return { error: err };
   }
+};
+
+// Helper function to clear all Supabase-related storage
+const clearSupabaseStorage = () => {
+  // Clear localStorage
+  const localKeysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && (
+      key.startsWith('sb-') || 
+      key.includes('supabase') ||
+      key.includes('auth-token') ||
+      key.includes('session')
+    )) {
+      localKeysToRemove.push(key);
+    }
+  }
+  
+  localKeysToRemove.forEach(key => {
+    localStorage.removeItem(key);
+  });
+  
+  // Clear sessionStorage
+  const sessionKeysToRemove: string[] = [];
+  for (let i = 0; i < sessionStorage.length; i++) {
+    const key = sessionStorage.key(i);
+    if (key && (
+      key.startsWith('sb-') || 
+      key.includes('supabase') ||
+      key.includes('auth-token') ||
+      key.includes('session')
+    )) {
+      sessionKeysToRemove.push(key);
+    }
+  }
+  
+  sessionKeysToRemove.forEach(key => {
+    sessionStorage.removeItem(key);
+  });
 };
 
 // Ensure user profile exists in users table
 export const ensureUserProfile = async (user: User) => {
   if (!user) return;
 
-  // Check if user profile exists
-  const { data: existingProfile } = await supabase
-    .from('users')
-    .select('id')
-    .eq('id', user.id);
-
-  if (existingProfile && existingProfile.length === 0) {
-    // Create user profile if it doesn't exist
-    const { error } = await supabase
+  try {
+    // Check if user profile exists
+    const { data: existingProfile } = await supabase
       .from('users')
-      .insert({
-        id: user.id,
-        email: user.email,
-        full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
-        avatar_url: user.user_metadata?.avatar_url,
-        linkedin_id: user.user_metadata?.sub || user.user_metadata?.provider_id,
-      });
+      .select('id')
+      .eq('id', user.id);
 
-    if (error) {
-      console.error('Error creating user profile:', error);
+    if (existingProfile && existingProfile.length === 0) {
+      // Create user profile if it doesn't exist
+      await supabase
+        .from('users')
+        .insert({
+          id: user.id,
+          email: user.email,
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
+          avatar_url: user.user_metadata?.avatar_url,
+          linkedin_id: user.user_metadata?.sub || user.user_metadata?.provider_id,
+        });
     }
+  } catch (error) {
+    // Silently handle profile creation errors
   }
 };
 
 // Auth state listener
 export const onAuthStateChange = (callback: (user: User | null) => void) => {
   return supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('=== AUTH STATE CHANGE ===');
-    console.log('Event:', event);
-    console.log('Session exists:', !!session);
-    console.log('User:', session?.user?.id || 'null');
-    
     const user = session?.user ?? null;
     
     // Call callback immediately to avoid delays
-    console.log('Calling auth callback with user:', user?.id || 'null');
     callback(user);
     
     // Ensure user profile exists when user signs in (do this after callback)
     if (user && event === 'SIGNED_IN') {
-      try {
-        console.log('Creating user profile for signed in user');
-        await ensureUserProfile(user);
-      } catch (error) {
-        console.error('Error ensuring user profile:', error);
-      }
+      await ensureUserProfile(user);
     }
-    
-    if (event === 'SIGNED_OUT') {
-      console.log('User signed out event detected');
-    }
-    
-    console.log('=== AUTH STATE CHANGE COMPLETE ===');
   });
 };
 
