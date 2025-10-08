@@ -256,7 +256,7 @@ Implement premium subscription tier with priority queue access and payment proce
 
 ## User Story Issues
 
-### [USER STORY] LinkedIn OAuth Authentication Integration
+### [USER STORY] User Registration and Login with Email Collection
 **Labels:** `user-story`, `authentication`, `frontend`, `backend`, `mvp`
 **Story Points:** 8
 **Milestone:** Sprint 1 - MVP Foundation
@@ -265,53 +265,55 @@ Implement premium subscription tier with priority queue access and payment proce
 **Description:**
 ```markdown
 ## User Story
-As an AI creator, I want to authenticate with my LinkedIn account so that I can join the verified community and access the invitation queue.
+As an AI creator, I want to register/login with my email and profile information so that I can be notified when invitation codes become available and access the queue system.
 
 ## Business Value
-- Reduces fraud risk through verified LinkedIn profiles
-- Builds trust infrastructure for community platform
-- Enables user verification and account management
+- Enables email notifications for code availability
+- Builds user engagement through direct communication
+- Supports user verification and account management
+- Creates foundation for community features
 
 ## Acceptance Criteria
-- [ ] User can click 'Sign in with LinkedIn' button
-- [ ] OAuth flow redirects to LinkedIn authorization
-- [ ] User grants permission and returns to application
-- [ ] User profile data is securely stored in database
-- [ ] Session is created and user is logged in
-- [ ] Error handling for failed authentication attempts
-- [ ] Privacy compliance with minimal data collection
+- [ ] User can register with email, password, and basic profile info
+- [ ] User can login with existing credentials
+- [ ] LinkedIn OAuth option available as alternative
+- [ ] Email address is mandatory and validated during registration
+- [ ] User profile includes email for notifications
+- [ ] Email verification process implemented
+- [ ] Password reset functionality available
+- [ ] Session management and security implemented
 
 ## Implementation Notes
-- Use Supabase Auth with LinkedIn OAuth provider
-- Store user ID, email, name, and avatar URL only
-- Implement proper error handling and user feedback
-- Follow LinkedIn API documentation and best practices
+- Use Supabase Auth with email/password and LinkedIn OAuth
+- Implement email validation and verification flow
+- Store email address for notification purposes
+- Add proper error handling and user feedback
 - Ensure GDPR compliance with user consent
 
 ## Technical Requirements
-- LinkedIn OAuth application configured
-- Supabase Auth provider setup
-- Frontend authentication components
-- Database user schema implementation
-- Session management and security
+- Supabase Auth configuration for multiple providers
+- Email validation and verification system
+- Frontend authentication forms and components
+- Database user schema with email field
+- Session management and security policies
 
 ## Testing Requirements
-- [ ] Unit tests for authentication flow
-- [ ] Integration tests with LinkedIn OAuth
-- [ ] Error handling tests for edge cases
-- [ ] Security tests for session management
+- [ ] Registration and login flow testing
+- [ ] Email validation and verification testing
+- [ ] OAuth integration testing
+- [ ] Security and session management testing
+- [ ] Error handling for edge cases
 
 ## Dependencies
 - [ ] Supabase project setup and configuration
-- [ ] LinkedIn Developer Account and OAuth app creation
+- [ ] Email service configuration for verification
 - [ ] Database user table schema implementation
 
 ## Definition of Done
-- [ ] Code implemented and tested
-- [ ] Authentication flow working end-to-end
-- [ ] Error handling implemented
-- [ ] Security review completed
-- [ ] User testing completed with positive feedback
+- [ ] Registration and login functional
+- [ ] Email collection and validation working
+- [ ] Authentication flows tested and secure
+- [ ] Email notification capability established
 ```
 
 ### [USER STORY] User Profile Creation and Management
@@ -370,7 +372,7 @@ As an authenticated user, I want to view and manage my profile information so th
 - [ ] User testing completed successfully
 ```
 
-### [USER STORY] Queue Join and Position Management
+### [USER STORY] Invitation Code Query and Display System
 **Labels:** `user-story`, `core-feature`, `frontend`, `backend`, `mvp`, `high-priority`
 **Story Points:** 13
 **Milestone:** Sprint 1 - MVP Foundation
@@ -379,54 +381,109 @@ As an authenticated user, I want to view and manage my profile information so th
 **Description:**
 ```markdown
 ## User Story
-As an AI creator, I want to join the Sora invitation queue and see my position so that I can track my progress toward receiving an invitation code.
+As an authenticated user, I want to query for available invitation codes so that I can either receive a code immediately or see my queue position if no codes are available.
 
 ## Business Value
-- Core functionality enabling fair distribution model
-- Solves primary user pain point of unfair access
-- Differentiates platform through transparency and fairness
+- Simplifies user experience with single "Query Code" action
+- Automatically handles queue management and code allocation
+- Provides immediate gratification when codes are available
 
 ## Acceptance Criteria
-- [ ] Authenticated user can click 'Join Queue' button
-- [ ] User is added to queue with timestamp-based position
-- [ ] Queue position is displayed clearly to user
-- [ ] Estimated wait time is calculated and shown
-- [ ] User can only have one active queue position
-- [ ] Queue position updates in real-time as others join/leave
-- [ ] Premium users are placed in priority queue section
+- [ ] User can click "Query Invitation Code" button
+- [ ] If code available: display allocated code to user immediately
+- [ ] If no code available: automatically add user to queue and show position
+- [ ] User can only have one active queue position at a time
+- [ ] Queue position updates when user refreshes page
+- [ ] Allocated codes are displayed securely and privately
+- [ ] Code allocation triggers email notification to user
 
 ## Implementation Notes
-- Implement FIFO queue logic with database table
-- Use Supabase real-time subscriptions for position updates
-- Calculate estimated wait time based on historical data
-- Handle premium user priority queue placement
-- Ensure atomic operations for queue management
+- Implement single-click code query with dual logic paths
+- Check available codes first, then queue if none available
+- Use atomic transactions to prevent race conditions
+- Display codes securely with proper access controls
+- Trigger email notifications on code allocation
 
 ## Technical Requirements
-- Database queue_entries table with proper indexing
-- Real-time WebSocket connections via Supabase
-- Queue position calculation algorithms
-- Frontend queue display components
-- Queue management API endpoints
+- Code availability checking algorithms
+- Queue management with automatic enrollment
+- Secure code display with access controls
+- Email notification system integration
+- Database transactions for atomic operations
 
 ## Testing Requirements
-- [ ] Unit tests for queue logic algorithms
-- [ ] Integration tests for queue operations
-- [ ] Real-time update testing
-- [ ] Load testing for concurrent queue operations
-- [ ] Edge case testing (duplicate joins, premium users)
+- [ ] Code query logic with available/unavailable scenarios
+- [ ] Atomic transaction testing for race conditions
+- [ ] Code security and access control testing
+- [ ] Email notification delivery testing
+- [ ] User experience flow testing
 
 ## Dependencies
-- [ ] User Authentication System (Epic)
-- [ ] Database queue schema implementation
-- [ ] Supabase real-time configuration
+- [ ] User Registration and Login System
+- [ ] Invitation code database schema
+- [ ] Email notification system setup
 
 ## Definition of Done
-- [ ] Queue joining functionality working
-- [ ] Position tracking accurate and real-time
-- [ ] Premium priority logic implemented
-- [ ] Performance requirements met
-- [ ] User testing validates experience
+- [ ] Query functionality working for both scenarios
+- [ ] Code allocation and queue management integrated
+- [ ] Email notifications functional
+- [ ] Security requirements met for code display
+```
+
+### [USER STORY] Queue Position Tracking and Refresh System
+**Labels:** `user-story`, `core-feature`, `frontend`, `mvp`
+**Story Points:** 8
+**Milestone:** Sprint 1 - MVP Foundation
+**Epic:** Core Queue Management System
+
+**Description:**
+```markdown
+## User Story
+As a user in the queue, I want to see my current position and be able to refresh to see updates so that I can track my progress toward receiving a code.
+
+## Business Value
+- Provides transparency and builds user trust
+- Reduces user anxiety through clear progress tracking
+- Enables users to stay engaged with the platform
+
+## Acceptance Criteria
+- [ ] User sees current queue position clearly displayed
+- [ ] Position updates when user refreshes the page
+- [ ] Estimated wait time shown based on current position
+- [ ] User can manually refresh to see position changes
+- [ ] When code becomes available, user sees code on login/refresh
+- [ ] Clear messaging about refresh behavior and expectations
+
+## Implementation Notes
+- Display current queue position prominently
+- Implement manual refresh functionality
+- Calculate estimated wait times based on queue movement
+- Handle code availability detection on refresh
+- Provide clear user feedback and instructions
+
+## Technical Requirements
+- Queue position calculation and display
+- Manual refresh functionality implementation
+- Wait time estimation algorithms
+- Code availability checking on refresh
+- User interface for queue status display
+
+## Testing Requirements
+- [ ] Position display accuracy testing
+- [ ] Refresh functionality testing
+- [ ] Wait time calculation validation
+- [ ] Code availability detection testing
+- [ ] User interface responsiveness testing
+
+## Dependencies
+- [ ] Invitation Code Query and Display System
+- [ ] Database queue schema implementation
+
+## Definition of Done
+- [ ] Queue position display functional
+- [ ] Manual refresh working correctly
+- [ ] Wait time estimates accurate
+- [ ] Code availability properly detected
 ```
 
 ### [USER STORY] Real-time Queue Position Updates
@@ -545,62 +602,314 @@ As a community member who received Sora access, I want to submit invitation code
 - [ ] Security review passed for code handling
 ```
 
-### [USER STORY] Code Allocation to Queue Recipients
-**Labels:** `user-story`, `core-feature`, `automation`, `backend`, `mvp`, `high-priority`
-**Story Points:** 13
+### [USER STORY] Email Notification System for Code Availability
+**Labels:** `user-story`, `notifications`, `backend`, `mvp`
+**Story Points:** 8
 **Milestone:** Sprint 1 - MVP Foundation
 **Epic:** Invitation Code Management
 
 **Description:**
 ```markdown
 ## User Story
-As a queue participant who reached the front of the queue, I want to automatically receive an available invitation code so that I can access Sora and fulfill my community obligations.
+As a user in the queue, I want to receive an email notification when an invitation code becomes available for me so that I don't have to constantly check the dashboard.
 
 ## Business Value
-- Completes the core value proposition of fair code distribution
-- Automates the allocation process to ensure fairness
-- Enables tracking of code distribution and community health
+- Improves user experience through proactive notifications
+- Increases user engagement and platform usage
+- Reduces manual checking and user frustration
 
 ## Acceptance Criteria
-- [ ] System automatically allocates codes when user reaches queue front
-- [ ] Premium users receive priority allocation over free users
-- [ ] User receives notification of code allocation via multiple channels
-- [ ] Allocated code is displayed securely to recipient only
-- [ ] 48-hour time limit is enforced for code claiming
-- [ ] Unclaimed codes are returned to available pool
-- [ ] Allocation history is tracked for transparency
+- [ ] User receives email when code is allocated to them
+- [ ] Email contains clear instructions to check dashboard
+- [ ] Email includes security reminder about code privacy
+- [ ] Email notifications are sent reliably within 5 minutes
+- [ ] Users can manage email notification preferences
+- [ ] Email template is professional and branded
+- [ ] Unsubscribe option available for compliance
 
 ## Implementation Notes
-- Implement automated queue processing with priority handling
-- Create secure code display and time-limited access
-- Add multiple notification channels (email, browser, dashboard)
-- Handle unclaimed code recycling back to pool
-- Track allocation history for transparency reporting
+- Integrate with email service provider (SendGrid/Resend)
+- Create professional email templates
+- Implement notification preferences management
+- Add email sending to code allocation workflow
+- Ensure compliance with email regulations
 
 ## Technical Requirements
-- Queue processing algorithms with priority logic
-- Code allocation and time-limit management
-- Secure code display with access controls
-- Notification system integration
-- Allocation history tracking and reporting
+- Email service provider integration
+- Email template system implementation
+- Notification preferences database schema
+- Email sending workflow integration
+- Delivery tracking and error handling
 
 ## Testing Requirements
-- [ ] Queue processing algorithm testing
-- [ ] Priority allocation logic testing
-- [ ] Time-limit enforcement testing
-- [ ] Notification delivery testing
-- [ ] Code security and access control testing
+- [ ] Email delivery testing across providers
+- [ ] Template rendering and formatting testing
+- [ ] Notification timing and reliability testing
+- [ ] Unsubscribe functionality testing
+- [ ] Error handling and retry logic testing
 
 ## Dependencies
-- [ ] Queue Join and Position Management (User Story)
-- [ ] Invitation Code Submission System (User Story)
-- [ ] Notification system setup
+- [ ] User Registration with Email Collection
+- [ ] Email service provider setup
+- [ ] Code allocation system implementation
 
 ## Definition of Done
-- [ ] Automated allocation working correctly
-- [ ] Priority logic implemented and tested
-- [ ] Security requirements met for code access
-- [ ] Notification system functional across channels
+- [ ] Email notifications working reliably
+- [ ] Professional templates implemented
+- [ ] User preferences functional
+- [ ] Compliance requirements met
+```
+
+### [USER STORY] Manual Code Donation System
+**Labels:** `user-story`, `community`, `frontend`, `backend`, `mvp`
+**Story Points:** 8
+**Milestone:** Sprint 1 - MVP Foundation
+**Epic:** Invitation Code Management
+
+**Description:**
+```markdown
+## User Story
+As a community member who has Sora access, I want to donate invitation codes manually so that I can contribute to the community and be recognized for my generosity.
+
+## Business Value
+- Enables community-driven code sharing
+- Builds user engagement through contribution recognition
+- Creates sustainable ecosystem for code availability
+
+## Acceptance Criteria
+- [ ] User can access code donation form
+- [ ] User can input invitation code manually
+- [ ] Code format validation before submission
+- [ ] Duplicate code detection and prevention
+- [ ] Donation confirmation and thank you message
+- [ ] Donation history tracked for user
+- [ ] Contributor recognition system implemented
+
+## Implementation Notes
+- Create secure code donation form
+- Implement invitation code format validation
+- Add duplicate detection algorithms
+- Track donation history and contributor statistics
+- Display thank you messaging and recognition
+
+## Technical Requirements
+- Code donation form with validation
+- Duplicate detection and prevention logic
+- Donation tracking database schema
+- Input sanitization and security measures
+- Contributor statistics calculation
+
+## Testing Requirements
+- [ ] Code format validation testing
+- [ ] Duplicate prevention testing
+- [ ] Form security and sanitization testing
+- [ ] Donation tracking accuracy testing
+- [ ] User interface usability testing
+
+## Dependencies
+- [ ] User Authentication System
+- [ ] Invitation code database schema
+- [ ] Code validation system implementation
+
+## Definition of Done
+- [ ] Donation form functional and secure
+- [ ] Validation and duplicate prevention working
+- [ ] Contribution tracking implemented
+- [ ] User recognition system functional
+```
+
+### [USER STORY] Hall of Generosity Recognition System
+**Labels:** `user-story`, `community`, `gamification`, `frontend`, `mvp`
+**Story Points:** 5
+**Milestone:** Sprint 2 - Community Features
+**Epic:** Transparency & Community Features
+
+**Description:**
+```markdown
+## User Story
+As a generous community member, I want to be recognized in a "Hall of Generosity" when I donate 3+ codes so that my contributions are acknowledged and others are encouraged to donate.
+
+## Business Value
+- Gamifies code donation to increase participation
+- Builds community recognition and social proof
+- Encourages sustained engagement and contributions
+
+## Acceptance Criteria
+- [ ] Users who donate 3+ codes appear in Hall of Generosity
+- [ ] Hall displays contributor name/profile and donation count
+- [ ] Recognition is updated automatically upon reaching threshold
+- [ ] Hall is publicly visible to encourage participation
+- [ ] Different recognition tiers for higher donation counts
+- [ ] Privacy settings allow users to opt-in/out of public recognition
+
+## Implementation Notes
+- Create Hall of Generosity page/section
+- Implement automatic recognition system
+- Add privacy controls for public display
+- Design recognition tiers and badges
+- Calculate and display donation statistics
+
+## Technical Requirements
+- Donation counting and threshold detection
+- Public recognition display system
+- Privacy preference management
+- Recognition tier calculation algorithms
+- Hall of Generosity user interface
+
+## Testing Requirements
+- [ ] Donation counting accuracy testing
+- [ ] Threshold detection and recognition testing
+- [ ] Privacy preference functionality testing
+- [ ] Recognition display testing
+- [ ] Performance testing with many contributors
+
+## Dependencies
+- [ ] Manual Code Donation System
+- [ ] User profile and preference system
+- [ ] Community features infrastructure
+
+## Definition of Done
+- [ ] Hall of Generosity functional
+- [ ] Automatic recognition working
+- [ ] Privacy controls implemented
+- [ ] Recognition system encouraging donations
+```
+
+### [USER STORY] Screenshot-Based Code Donation with OCR
+**Labels:** `user-story`, `community`, `ocr`, `backend`, `enhancement`
+**Story Points:** 13
+**Milestone:** Sprint 2 - Community Features
+**Epic:** Invitation Code Management
+
+**Description:**
+```markdown
+## User Story
+As a community member, I want to donate codes by uploading a screenshot so that I can easily contribute without manually typing codes and the system can automatically extract the invitation code.
+
+## Business Value
+- Simplifies donation process to increase participation
+- Reduces manual entry errors and improves accuracy
+- Provides more convenient user experience for contributors
+
+## Acceptance Criteria
+- [ ] User can upload screenshot image of invitation code
+- [ ] System automatically detects and extracts code from center of image
+- [ ] OCR extraction accuracy validated before acceptance
+- [ ] Manual verification option if OCR fails
+- [ ] Donation tracked with uploader and timestamp
+- [ ] Image processing handles various screenshot formats
+- [ ] Privacy protection - images deleted after processing
+
+## Implementation Notes
+- Integrate OCR service (Tesseract.js or Google Vision API)
+- Implement image upload and processing pipeline
+- Add code extraction and validation logic
+- Handle various image formats and qualities
+- Ensure privacy by deleting images after processing
+
+## Technical Requirements
+- Image upload functionality with file validation
+- OCR service integration for text extraction
+- Code pattern recognition and validation
+- Image processing and cleanup algorithms
+- Secure file handling and deletion system
+
+## Testing Requirements
+- [ ] OCR accuracy testing with various screenshot types
+- [ ] Image upload and processing testing
+- [ ] Code extraction validation testing
+- [ ] File security and deletion testing
+- [ ] Error handling for poor quality images
+
+## Dependencies
+- [ ] Manual Code Donation System
+- [ ] OCR service setup and integration
+- [ ] File upload infrastructure
+
+## Definition of Done
+- [ ] Screenshot upload functional
+- [ ] OCR extraction working with good accuracy
+- [ ] Code validation and donation tracking implemented
+- [ ] Privacy and security requirements met
+```
+
+### [TASK] OCR Service Integration and Configuration
+**Labels:** `task`, `backend`, `ocr`, `integration`, `medium-priority`
+**Story Points:** 8
+**Milestone:** Sprint 2 - Community Features
+
+**Description:**
+```markdown
+# Task: OCR Service Integration and Configuration
+
+## Objective
+Integrate and configure OCR (Optical Character Recognition) service to automatically extract invitation codes from uploaded screenshots.
+
+## Technical Requirements
+- Evaluate and select OCR service provider
+- Implement image preprocessing for better accuracy
+- Configure code pattern recognition
+- Handle various image formats and qualities
+- Implement error handling and fallback options
+
+## OCR Service Options
+### Option 1: Tesseract.js (Client-side)
+- Free and open source
+- Runs in browser (privacy-friendly)
+- Good for basic text extraction
+- Requires image preprocessing
+
+### Option 2: Google Vision API
+- High accuracy OCR service
+- Handles complex images well
+- Pay-per-use pricing model
+- Server-side processing required
+
+### Option 3: AWS Textract
+- Advanced text extraction capabilities
+- Good integration with other AWS services
+- Enterprise-grade reliability
+- Cost considerations for volume
+
+## Implementation Approach
+- Start with Tesseract.js for MVP validation
+- Implement image preprocessing pipeline
+- Add pattern matching for invitation code formats
+- Configure confidence scoring and validation
+- Plan upgrade path to cloud OCR if needed
+
+## Image Processing Pipeline
+1. Image upload validation and security checks
+2. Image preprocessing (resize, enhance, cleanup)
+3. OCR text extraction with confidence scoring
+4. Pattern matching for invitation code formats
+5. Validation and manual review fallback
+6. Secure image deletion after processing
+
+## Acceptance Criteria
+- [ ] OCR service integrated and functional
+- [ ] Image preprocessing pipeline working
+- [ ] Code pattern recognition achieving >80% accuracy
+- [ ] Error handling for poor quality images
+- [ ] Security measures for file handling implemented
+- [ ] Performance benchmarks met (<30 seconds processing)
+
+## Testing Requirements
+- [ ] OCR accuracy testing with diverse screenshot samples
+- [ ] Performance testing with various image sizes
+- [ ] Security testing for file upload and processing
+- [ ] Error scenario testing and fallback validation
+
+## Dependencies
+- [ ] Image upload infrastructure setup
+- [ ] File storage and security configuration
+- [ ] Code validation system implementation
+
+## Definition of Done
+- [ ] OCR service fully integrated and tested
+- [ ] Accuracy and performance requirements met
+- [ ] Security and privacy measures implemented
+- [ ] Documentation and monitoring in place
 ```
 
 ### [USER STORY] GitHub Transparency Integration
@@ -608,6 +917,245 @@ As a queue participant who reached the front of the queue, I want to automatical
 **Story Points:** 8
 **Milestone:** Sprint 2 - Community Features
 **Epic:** Transparency & Community Features
+
+**Description:**
+```markdown
+## User Story
+As a community member, I want to see the queue management code and statistics on GitHub so that I can trust the system and understand how the invitation distribution works.
+
+## Business Value
+- Builds trust through complete transparency
+- Allows community contribution and oversight
+- Demonstrates fair and unbiased distribution system
+- Attracts developers through open source approach
+
+## Acceptance Criteria
+- [ ] Complete source code published on GitHub
+- [ ] Queue statistics API publicly accessible
+- [ ] Real-time metrics dashboard available
+- [ ] Distribution algorithm clearly documented
+- [ ] Community contribution guidelines provided
+- [ ] Code review process transparent and open
+
+## Implementation Notes
+- Make repository public with clear documentation
+- Implement public API endpoints for statistics
+- Create metrics dashboard showing distribution fairness
+- Document queue management and notification algorithms
+- Establish community contribution process
+
+## Technical Requirements
+- Public GitHub repository with proper documentation
+- Public API endpoints for queue and donation statistics
+- Real-time metrics tracking and display
+- Algorithm documentation and flowcharts
+- Community guidelines and contribution process
+
+## Testing Requirements
+- [ ] Documentation accuracy and completeness testing
+- [ ] Public API functionality and accessibility testing
+- [ ] Metrics dashboard accuracy verification
+- [ ] Community contribution workflow testing
+
+## Definition of Done
+- [ ] Repository made public with comprehensive documentation
+- [ ] Statistics API accessible and functional
+- [ ] Community contribution process established
+- [ ] Transparency requirements fully implemented
+```
+
+### [USER STORY] Analytics and Usage Tracking System
+**Labels:** `user-story`, `analytics`, `metrics`, `backend`, `enhancement`
+**Story Points:** 5
+**Milestone:** Sprint 3 - Analytics & Optimization
+**Epic:** System Analytics
+
+**Description:**
+```markdown
+## User Story
+As a system administrator, I want to track usage patterns and system performance so that I can optimize the queue system and understand user behavior.
+
+## Business Value
+- Provides insights for system optimization
+- Helps identify usage patterns and peak times
+- Enables data-driven decision making for improvements
+- Supports scalability planning and resource allocation
+
+## Acceptance Criteria
+- [ ] Track user registration and authentication patterns
+- [ ] Monitor queue join and position changes
+- [ ] Track code donation frequency and sources
+- [ ] Monitor email notification delivery and engagement
+- [ ] Track system performance and response times
+- [ ] Generate reports on user activity and system health
+
+## Implementation Notes
+- Implement event tracking throughout the application
+- Use privacy-compliant analytics approach
+- Create dashboard for real-time monitoring
+- Set up alerting for system issues or anomalies
+- Ensure GDPR compliance for data collection
+
+## Technical Requirements
+- Event tracking system integrated across all user actions
+- Analytics dashboard with key metrics visualization
+- Performance monitoring and alerting system
+- Data export capabilities for deeper analysis
+- Privacy-compliant data collection and storage
+
+## Testing Requirements
+- [ ] Event tracking accuracy verification
+- [ ] Dashboard functionality and data accuracy testing
+- [ ] Performance monitoring system testing
+- [ ] Privacy compliance validation
+- [ ] Alert system functionality testing
+
+## Definition of Done
+- [ ] Comprehensive analytics system implemented
+- [ ] Dashboard functional with key metrics
+- [ ] Privacy compliance requirements met
+- [ ] Monitoring and alerting operational
+```
+
+### [TASK] Email Service Provider Integration and Setup
+**Labels:** `task`, `backend`, `email`, `integration`, `high-priority`
+**Story Points:** 5
+**Milestone:** Sprint 1 - Core Features
+
+**Description:**
+```markdown
+# Task: Email Service Provider Integration and Setup
+
+## Objective
+Integrate and configure email service provider for sending notification emails to users when invitation codes become available.
+
+## Technical Requirements
+- Select and configure email service provider
+- Set up SMTP or API-based email sending
+- Create email templates for notifications
+- Implement email queue and retry logic
+- Configure domain authentication and reputation
+
+## Email Service Provider Options
+### Option 1: SendGrid
+- Reliable delivery and reputation management
+- Good API and template management
+- Free tier available for testing
+- Comprehensive analytics and tracking
+
+### Option 2: AWS SES
+- Cost-effective for high volume
+- Good integration with AWS ecosystem
+- Requires domain verification setup
+- Basic analytics included
+
+### Option 3: Mailgun
+- Developer-friendly API
+- Good deliverability rates
+- Flexible pricing model
+- Advanced features for email validation
+
+## Implementation Approach
+- Start with SendGrid for MVP development
+- Configure domain authentication (SPF, DKIM)
+- Create responsive email templates
+- Implement email sending queue system
+- Set up delivery tracking and analytics
+
+## Email Templates Needed
+- Welcome email for new registrations
+- Code availability notification
+- Queue position updates (optional)
+- Donation confirmation email
+
+## Acceptance Criteria
+- [ ] Email service provider configured and tested
+- [ ] Domain authentication properly set up
+- [ ] Email templates created and responsive
+- [ ] Sending queue system implemented
+- [ ] Delivery tracking and error handling working
+
+## Dependencies
+- [ ] User email collection system
+- [ ] Queue management notifications trigger
+
+## Definition of Done
+- [ ] Email service fully operational
+- [ ] Templates tested across email clients
+- [ ] Monitoring and analytics configured
+- [ ] Documentation complete
+```
+
+### [TASK] Production Deployment and CI/CD Pipeline
+**Labels:** `task`, `devops`, `deployment`, `ci-cd`, `medium-priority`
+**Story Points:** 8
+**Milestone:** Sprint 2 - Community Features
+
+**Description:**
+```markdown
+# Task: Production Deployment and CI/CD Pipeline
+
+## Objective
+Set up production deployment infrastructure and continuous integration/deployment pipeline for reliable and automated releases.
+
+## Technical Requirements
+- Configure production hosting environment
+- Set up automated deployment pipeline
+- Implement environment-specific configurations
+- Configure monitoring and logging
+- Set up backup and disaster recovery
+
+## Deployment Infrastructure
+### Frontend (UI)
+- Static hosting (Vercel, Netlify, or AWS S3/CloudFront)
+- Environment variable management
+- Domain and SSL configuration
+- CDN setup for performance
+
+### Backend (Supabase)
+- Production Supabase project setup
+- Database migration management
+- Edge function deployment
+- Environment configuration
+
+## CI/CD Pipeline Components
+- Automated testing on pull requests
+- Code quality and security scanning
+- Automated deployment to staging
+- Production deployment with approval gates
+- Rollback capabilities for issues
+
+## Monitoring and Observability
+- Application performance monitoring
+- Error tracking and alerting
+- Log aggregation and analysis
+- Uptime monitoring and notifications
+
+## Security Considerations
+- Environment variable security
+- API key and secret management
+- Security scanning in pipeline
+- Regular dependency updates
+
+## Acceptance Criteria
+- [ ] Production environment configured and accessible
+- [ ] CI/CD pipeline automated and functional
+- [ ] Monitoring and alerting operational
+- [ ] Security measures implemented
+- [ ] Documentation and runbooks complete
+
+## Dependencies
+- [ ] Application code completion and testing
+- [ ] Environment configuration requirements
+- [ ] Domain and hosting account setup
+
+## Definition of Done
+- [ ] Production deployment successful
+- [ ] CI/CD pipeline operational
+- [ ] Monitoring systems active
+- [ ] Security requirements met
+- [ ] Team trained on deployment process
+```
 
 **Description:**
 ```markdown
