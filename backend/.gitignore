@@ -1,0 +1,55 @@
+# Backend-specific .gitignore (Supabase)
+# ======================================
+
+# Supabase local development
+.supabase/
+supabase/.branches/
+supabase/.temp/
+supabase/docker/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# Database files
+*.sql.bak
+*.sql.gz
+*.dump
+*.sqlite
+*.sqlite3
+*.db
+
+# Node modules (if using Node.js tools)
+node_modules/
+
+# Logs
+*.log
+supabase-debug.log
+
+# Temporary files
+*.tmp
+.temp/
+tmp/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Backup files
+*.bak
+*.backup
+
+# Service account keys
+service-account-*.json
+
+# API keys and secrets
+.api-keys
+.tokens
+linkedin-config.json
+stripe-config.json
+.github-token

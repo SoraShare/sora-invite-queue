@@ -1,0 +1,44 @@
+# UI-specific .gitignore (Frontend)
+# =================================
+
+# Vite specific
+dist/
+dist-ssr/
+.vite/
+vite.config.js.timestamp-*
+
+# Node modules
+node_modules/
+
+# Environment files (with actual secrets)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Cloudflare Workers config (not needed for Pages)
+wrangler.toml
+
+# Build outputs
+build/
+out/
+
+# Dependencies
+.pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage
+coverage/
+
+# Logs
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
