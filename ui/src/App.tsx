@@ -3,6 +3,8 @@ import { AuthForm } from '@/components/AuthForm';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { RequestCode } from '@/components/RequestCode';
 import { DonateCode } from '@/components/DonateCode';
+import { Homepage } from '@/components/Homepage';
+import { Layout } from '@/components/Layout';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueue } from '@/hooks/useQueue';
 import toast, { Toaster } from 'react-hot-toast';
@@ -105,8 +107,8 @@ const Navigation = () => {
         <div className="flex justify-between items-center">
           <div>
             <Link to="/" className="block">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Sora Invite Queue
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+                SoraShare
               </h1>
               <p className="text-sm text-gray-600">
                 Fair, transparent access to OpenAI Sora invitations
@@ -240,58 +242,58 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+    <>
       <Toaster position="top-right" />
       
-      <Navigation />
-
-      {/* Main Content - Scrollable */}
-      <main className="flex-1 overflow-y-auto">
-        <Routes>
-          {/* Public auth route */}
-          <Route path="/auth" element={<AuthPage />} />
-          
-          {/* Protected routes */}
-          <Route 
-            path="/request" 
-            element={
-              <ProtectedRoute>
-                <RequestCode />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/donate" 
-            element={
-              <ProtectedRoute>
-                <DonateCode />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Default redirects */}
-          <Route path="/" element={<Navigate to="/auth" replace />} />
-          <Route path="*" element={<Navigate to="/auth" replace />} />
-        </Routes>
-      </main>
-
-      {/* Footer - Sticky at bottom */}
-      <footer className="bg-white border-t border-gray-200 flex-shrink-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-600">
-            <p className="text-sm">
-              Built for the AI community • Fair • Transparent • Open Source
-            </p>
-            <p className="text-xs mt-2">
-              Part of the SoraShare community initiative
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Routes>
+        {/* Homepage - Public (standalone layout) */}
+        <Route path="/" element={<Homepage />} />
+        
+        {/* All other routes with navigation layout */}
+        <Route path="/auth" element={
+          <Layout>
+            <Navigation />
+            <main className="flex-1 overflow-y-auto">
+              <AuthPage />
+            </main>
+          </Layout>
+        } />
+        
+        <Route 
+          path="/request" 
+          element={
+            <Layout>
+              <Navigation />
+              <main className="flex-1 overflow-y-auto">
+                <ProtectedRoute>
+                  <RequestCode />
+                </ProtectedRoute>
+              </main>
+            </Layout>
+          } 
+        />
+        
+        <Route 
+          path="/donate" 
+          element={
+            <Layout>
+              <Navigation />
+              <main className="flex-1 overflow-y-auto">
+                <ProtectedRoute>
+                  <DonateCode />
+                </ProtectedRoute>
+              </main>
+            </Layout>
+          } 
+        />
+        
+        {/* Default fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
       {/* Debug info */}
       {isDebugEnabled && <AuthDebug />}
-    </div>
+    </>
   );
 }
 
