@@ -10,12 +10,13 @@
     "deploy": "npm run build && wrangler pages deploy dist"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.38.4",
+    "date-fns": "^2.30.0",
+    "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@supabase/supabase-js": "^2.38.4",
-    "lucide-react": "^0.294.0",
-    "date-fns": "^2.30.0",
-    "react-hot-toast": "^2.4.1"
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^7.9.4"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

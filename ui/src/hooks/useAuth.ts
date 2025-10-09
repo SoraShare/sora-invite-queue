@@ -28,6 +28,7 @@ export const useAuth = () => {
       try {
         // Set up auth state listener
         const { data: { subscription } } = onAuthStateChange((user) => {
+          console.log('Auth state change detected:', user?.id || 'null');
           if (mounted) {
             setUser(user);
             setIsLoading(false);
@@ -155,27 +156,36 @@ export const useAuth = () => {
   }, []);
 
   const signOut = useCallback(async () => {
+    console.log('useAuth signOut called, current user:', user?.id || 'null');
     setIsLoading(true);
     setError(null);
     
     try {
       const { error } = await supabaseSignOut();
+      console.log('Supabase signOut result:', error || 'success');
       
       if (error) {
         setError(error.message || 'Sign out failed');
         return { success: false, error: error.message };
       }
       
-      // State will be updated by auth listener
+      // Manually clear user state as backup
+      setUser(null);
+      
       return { success: true };
     } catch (err: any) {
+      console.error('Sign out error in useAuth:', err);
       const errorMessage = err.message || 'Sign out failed';
       setError(errorMessage);
+      
+      // Force clear user state even on error
+      setUser(null);
+      
       return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   const clearError = useCallback(() => {
     setError(null);

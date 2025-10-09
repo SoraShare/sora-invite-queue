@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
 
@@ -7,6 +8,7 @@ interface AuthFormProps {
 }
 
 export const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
+  const navigate = useNavigate();
   const { signIn, signUp, signInWithLinkedIn, isLoading: authLoading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -26,6 +28,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
           } else {
             toast.success('Account created successfully!');
             onAuthSuccess?.();
+            navigate('/request');
           }
         } else {
           toast.error(result.error || 'Sign up failed');
@@ -36,6 +39,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
         if (result.success) {
           toast.success('Signed in successfully!');
           onAuthSuccess?.();
+          navigate('/request');
         } else {
           toast.error(result.error || 'Sign in failed');
         }
@@ -49,10 +53,13 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
     try {
       const result = await signInWithLinkedIn();
       
-      if (!result.success) {
+      if (result.success) {
+        toast.success('Signed in with LinkedIn successfully!');
+        onAuthSuccess?.();
+        navigate('/request');
+      } else {
         toast.error(result.error || 'LinkedIn authentication failed');
       }
-      // The redirect will happen automatically if successful
     } catch (error: any) {
       toast.error(error.message || 'LinkedIn authentication failed');
     }
