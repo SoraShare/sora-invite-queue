@@ -19,18 +19,29 @@ export const DonateCode = () => {
   };
 
   const updateCode = (index: number, value: string) => {
+    // Allow only alphanumeric characters and convert to uppercase
+    const sanitizedValue = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    // Limit to 6 characters
+    const limitedValue = sanitizedValue.slice(0, 6);
+    
     const newCodes = [...codes];
-    newCodes[index] = value;
+    newCodes[index] = limitedValue;
     setCodes(newCodes);
   };
 
   const handleSubmitCodes = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validCodes = codes.filter(code => code.trim().length > 0);
+    const validCodes = codes.filter(code => code.trim().length === 6);
     
     if (validCodes.length === 0) {
-      toast.error('Please enter at least one invitation code');
+      toast.error('Please enter at least one valid 6-character invitation code');
+      return;
+    }
+    
+    const invalidCodes = codes.filter(code => code.trim().length > 0 && code.trim().length !== 6);
+    if (invalidCodes.length > 0) {
+      toast.error('All invitation codes must be exactly 6 characters long');
       return;
     }
 
@@ -97,8 +108,9 @@ export const DonateCode = () => {
                     type="text"
                     value={code}
                     onChange={(e) => updateCode(index, e.target.value)}
-                    placeholder="Enter invitation code (e.g., SORA-XXXX-XXXX-XXXX)"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Enter 6-character code (e.g., ABC123)"
+                    maxLength={6}
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-lg tracking-wider"
                     disabled={isSubmitting}
                   />
                   {codes.length > 1 && (
@@ -125,7 +137,7 @@ export const DonateCode = () => {
               </button>
               
               <p className="mt-2 text-sm text-gray-500">
-                Paste the complete invitation codes or links you received from OpenAI.
+                Enter 6-character invitation codes containing only letters and numbers. Lowercase letters will be automatically converted to uppercase.
               </p>
             </div>
 
@@ -141,7 +153,7 @@ export const DonateCode = () => {
 
             <button
               type="submit"
-              disabled={isSubmitting || codes.every(code => !code.trim())}
+              disabled={isSubmitting || codes.every(code => code.trim().length !== 6)}
               className="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center"
             >
               {isSubmitting ? (
