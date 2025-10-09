@@ -6,7 +6,8 @@ import {
   signOut as supabaseSignOut,
   signInWithEmail as supabaseSignInWithEmail,
   signUpWithEmail as supabaseSignUpWithEmail,
-  signInWithLinkedIn as supabaseSignInWithLinkedIn
+  signInWithLinkedIn as supabaseSignInWithLinkedIn,
+  signInWithGitHub as supabaseSignInWithGitHub
 } from '@/lib/supabase';
 
 export const useAuth = () => {
@@ -155,6 +156,29 @@ export const useAuth = () => {
     }
   }, []);
 
+  const signInWithGitHub = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const { data, error } = await supabaseSignInWithGitHub();
+      
+      if (error) {
+        setError(error.message);
+        return { success: false, error: error.message };
+      }
+      
+      // The redirect will happen automatically
+      return { success: true, data };
+    } catch (err: any) {
+      const errorMessage = err.message || 'GitHub sign in failed';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     console.log('useAuth signOut called, current user:', user?.id || 'null');
     setIsLoading(true);
@@ -199,6 +223,7 @@ export const useAuth = () => {
     signIn,
     signUp,
     signInWithLinkedIn,
+    signInWithGitHub,
     signOut,
     clearError,
   };

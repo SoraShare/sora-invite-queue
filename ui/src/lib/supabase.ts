@@ -87,6 +87,16 @@ export const signInWithLinkedIn = async () => {
   return { data, error };
 };
 
+export const signInWithGitHub = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: `${window.location.origin}`,
+    },
+  });
+  return { data, error };
+};
+
 export const signOut = async () => {
   try {
     // Always try the standard Supabase signOut method first

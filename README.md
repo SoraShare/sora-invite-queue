@@ -25,11 +25,12 @@
 **Budget:** $500 infrastructure allocation using free/low-cost managed services
 
 **Technology Stack:**
-- **Frontend:** Next.js 14 with App Router (React, TypeScript, Tailwind CSS)
+- **Frontend:** Vite + React 18 (TypeScript, Tailwind CSS, React Router)
 - **Backend:** Supabase (PostgreSQL, Auth, Real-time, Edge Functions)
-- **Hosting:** Vercel (automatic deployment, CDN, edge optimization)
-- **Payments:** Stripe Elements (managed compliance, simple integration)
-- **Monitoring:** Supabase Dashboard + Vercel Analytics
+- **Local Development:** Supabase CLI with local PostgreSQL instance
+- **Authentication:** LinkedIn OAuth, GitHub OAuth (+ Email for local dev only)
+- **Deployment:** Vercel/Netlify (frontend), Supabase Cloud (backend)
+- **Monitoring:** Supabase Dashboard + deployment platform analytics
 
 ### Target Audience & Market
 - **Primary Users:** AI creators, developers, researchers (500K+ globally)
@@ -51,11 +52,13 @@
 - **User Experience:** Real-time position updates, estimated wait time display
 - **Success Criteria:** 100% queue processing accuracy, <12 hour average wait time
 
-#### 2. **LinkedIn Authentication & Verification**  
-- **Description:** OAuth-based user authentication with profile validation
+#### 2. **Social Authentication & Verification**  
+- **Description:** OAuth-based user authentication with LinkedIn and GitHub
 - **Business Value:** Reduces fraud risk and builds trust infrastructure
-- **Technical Implementation:** Supabase Auth with LinkedIn OAuth provider
+- **Technical Implementation:** Supabase Auth with LinkedIn and GitHub OAuth providers
 - **User Experience:** Seamless social login, verified user badges
+- **Local Development:** Includes email/password for testing convenience
+- **Production:** LinkedIn and GitHub OAuth only (email login disabled)
 - **Success Criteria:** 95% authentication success rate, <60 seconds login time
 
 #### 3. **Invitation Code Management**
@@ -114,10 +117,11 @@
 
 #### **Backend (Supabase Managed Services)**
 - **Database:** PostgreSQL with real-time subscriptions, row-level security
-- **Authentication:** Supabase Auth with LinkedIn OAuth, session management
+- **Authentication:** Supabase Auth with OAuth providers (LinkedIn, GitHub)
 - **API:** Auto-generated REST API + GraphQL, custom Edge Functions for business logic
 - **Real-time:** WebSocket connections for live queue position updates
-- **Storage:** Secure file storage for user avatars and administrative documents
+- **Local Development:** Supabase CLI with `backend/supabase/config.toml` configuration
+- **Environment Management:** `backend/.env.local` for local development variables
 
 #### **Integration Services**
 - **Payments:** Stripe Elements with Supabase Stripe integration
@@ -170,11 +174,30 @@ code_returns (
 );
 ```
 
+### Authentication Architecture
+
+#### **Local Development Authentication**
+- **Email/Password:** Enabled for development and testing purposes
+- **LinkedIn OAuth:** Configured via `backend/supabase/config.toml` and `backend/.env.local`
+- **GitHub OAuth:** Configured via `backend/supabase/config.toml` and `backend/.env.local`
+- **Configuration:** `backend/supabase/config.toml` uses `env(VARIABLE_NAME)` syntax to load from `.env.local`
+
+#### **Production Authentication**
+- **Email/Password:** **DISABLED** for security and user experience
+- **LinkedIn OAuth:** Configured directly in Supabase Cloud Dashboard
+- **GitHub OAuth:** Configured directly in Supabase Cloud Dashboard
+- **Configuration:** Environment variables set manually in Supabase Dashboard (not from files)
+
+#### **Supabase Configuration Management**
+- **Local:** `backend/supabase/config.toml` + `backend/.env.local` (used by `supabase start`)
+- **Production:** Supabase Cloud Dashboard settings (config.toml not used in cloud)
+- **OAuth Providers:** Must be configured separately in both local config and cloud dashboard
+
 ### Security & Compliance Architecture
 
 #### **Data Protection**
 - **Encryption:** Supabase managed encryption for sensitive data (invitation codes)
-- **Authentication:** OAuth 2.0 with LinkedIn, secure session management
+- **Authentication:** OAuth 2.0 with LinkedIn and GitHub, secure session management
 - **Authorization:** Row-level security policies, role-based access control
 - **Privacy:** GDPR compliance via Supabase features, minimal data collection
 
@@ -207,21 +230,95 @@ code_returns (
 # Required Tools
 - Node.js 18+ and npm/yarn
 - Git for version control
-- Vercel CLI for deployment
 - Supabase CLI for local development
+- Vite for frontend development server
 
-# Environment Variables (.env.local)
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+# Backend Environment Variables (backend/.env.local)
+SUPABASE_PROJECT_REF=your_project_ref
+SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-STRIPE_SECRET_KEY=your_stripe_secret_key
-LINKEDIN_CLIENT_ID=your_linkedin_client_id
-LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
-GITHUB_TOKEN=your_github_token
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_AUTH_EXTERNAL_LINKEDIN_CLIENT_ID=your_linkedin_client_id
+SUPABASE_AUTH_EXTERNAL_LINKEDIN_SECRET=your_linkedin_secret
+SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID=your_github_client_id
+SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET=your_github_secret
+
+# Frontend Environment Variables (ui/.env.local)
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_USE_LOCAL_SUPABASE=true
+VITE_ENABLE_QUEUE_AUTO_REFRESH=false
+VITE_SHOW_AUTH_DEBUG=true
 ```
 
 ### Project File Structure
+```
+sora-invite-queue/
+├── README.md                          # This comprehensive project guide
+├── IMPLEMENTATION.md                  # Implementation details and setup
+├── business-validation-report.md      # Business analysis and validation
+├── architecture-config.md             # Technical architecture details
+├── feature-specifications.md          # Feature requirements and specs
+├── github-issues-breakdown.md         # GitHub issues and project management
+├── next-steps-action-plan.md          # Post-MVP roadmap and next steps
+│
+├── backend/                           # Supabase backend configuration
+│   ├── .env.example                   # Environment variables template
+│   ├── .env.local                     # Local development environment variables
+│   ├── package.json                   # Backend dependencies
+│   └── supabase/                      # Supabase project configuration
+│       ├── config.toml                # Local Supabase configuration
+│       ├── seed.sql                   # Database seeding data
+│       ├── migrations/                # Database schema migrations
+│       │   ├── 20241001000000_initial_queue_schema.sql
+│       │   └── 20241006000000_add_user_profile_trigger.sql
+│       └── functions/                 # Supabase Edge Functions
+│           ├── code-manager/          # Invitation code management
+│           ├── code-submission/       # Code submission handling
+│           ├── queue-management/      # Queue operations
+│           └── queue-processor/       # Queue processing logic
+│
+├── ui/                               # Vite + React frontend application
+│   ├── .env.example                  # Frontend environment template
+│   ├── .env.local                    # Local frontend environment variables
+│   ├── .env.production               # Production environment variables
+│   ├── package.json                  # Frontend dependencies and scripts
+│   ├── vite.config.ts                # Vite build configuration
+│   ├── tailwind.config.js            # Tailwind CSS configuration
+│   ├── tsconfig.json                 # TypeScript configuration
+│   ├── index.html                    # Main HTML template
+│   │
+│   ├── src/                          # Source code
+│   │   ├── App.tsx                   # Main application component
+│   │   ├── main.tsx                  # Application entry point
+│   │   ├── index.css                 # Global styles
+│   │   │
+│   │   ├── components/               # React components
+│   │   │   ├── AuthForm.tsx          # LinkedIn/GitHub/Email authentication
+│   │   │   ├── DonateCode.tsx        # Code donation interface
+│   │   │   ├── RequestCode.tsx       # Code request and queue interface
+│   │   │   ├── QueueCard.tsx         # Queue status and user profile display
+│   │   │   ├── Homepage.tsx          # Landing page component
+│   │   │   ├── Layout.tsx            # Application layout wrapper
+│   │   │   ├── ProtectedRoute.tsx    # Route protection component
+│   │   │   └── ui/                   # Reusable UI components
+│   │   │
+│   │   ├── hooks/                    # Custom React hooks
+│   │   │   ├── useAuth.ts            # Authentication state management
+│   │   │   └── useQueue.ts           # Queue position and updates
+│   │   │
+│   │   ├── lib/                      # Utility functions and configurations
+│   │   │   └── supabase.ts           # Supabase client configuration
+│   │   │
+│   │   ├── services/                 # API service functions
+│   │   │   └── queueService.ts       # Queue-related API calls
+│   │   │
+│   │   └── types/                    # TypeScript type definitions
+│   │       └── queue.ts              # Queue and user types
+│   │
+│   └── public/                       # Static assets
+│       └── _redirects                # Netlify/Vercel redirect rules
+```
 ```
 sora-invite-queue/
 ├── README.md                          # This comprehensive project guide
@@ -273,23 +370,86 @@ sora-invite-queue/
     └── deployment-guide.md          # Production deployment instructions
 ```
 
-### 1-Day Implementation Roadmap
+## 🚀 Development Setup & Local Environment
 
-#### **Hour 1-2: Project Setup & Infrastructure**
+### Environment Configuration
+
+This project uses **separate environment configurations** for local development and production:
+
+#### **Local Development Environment**
+- **Backend**: Uses `backend/.env.local` for Supabase configuration
+- **Frontend**: Uses `ui/.env.local` for frontend environment variables
+- **Supabase**: Uses `backend/supabase/config.toml` for local Supabase instance configuration
+- **Authentication**: Supports email/password, LinkedIn OAuth, and GitHub OAuth
+
+#### **Production Environment**
+- **Backend**: Environment variables configured directly in Supabase Cloud Dashboard
+- **Frontend**: Uses `ui/.env.production` or deployment platform environment variables
+- **Authentication**: **LinkedIn and GitHub OAuth only** (email/password disabled for security)
+
+### Local Development Setup
+
+#### **1. Backend Setup (Supabase)**
 ```bash
-# 1. Create Next.js project with TypeScript and Tailwind
-npx create-next-app@latest sora-invite-queue --typescript --tailwind --app --src-dir --import-alias="@/*"
+# Navigate to backend directory
+cd backend
 
-# 2. Set up Supabase project (15 minutes)
-# - Create new Supabase project at https://supabase.com
-# - Note down project URL and anon key
-# - Enable LinkedIn OAuth in Authentication settings
+# Install Supabase CLI
+npm install -g supabase
 
-# 3. Install required dependencies
-npm install @supabase/supabase-js @supabase/auth-helpers-nextjs
-npm install @stripe/stripe-js stripe
-npm install @octokit/rest lucide-react
+# Start local Supabase (uses backend/supabase/config.toml)
+supabase start
+
+# The config.toml automatically loads environment variables from backend/.env.local
+# Variables are referenced using env(VARIABLE_NAME) syntax in config.toml
 ```
+
+#### **2. Frontend Setup (Vite + React)**
+```bash
+# Navigate to UI directory
+cd ui
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+#### **3. Environment Variables Setup**
+```bash
+# Backend environment (backend/.env.local)
+SUPABASE_AUTH_EXTERNAL_LINKEDIN_CLIENT_ID=your_linkedin_client_id
+SUPABASE_AUTH_EXTERNAL_LINKEDIN_SECRET=your_linkedin_secret
+SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID=your_github_client_id
+SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET=your_github_secret
+
+# Frontend environment (ui/.env.local)
+VITE_USE_LOCAL_SUPABASE=true              # Use local Supabase instance
+VITE_SUPABASE_URL=http://localhost:54321  # Local Supabase URL
+VITE_SUPABASE_ANON_KEY=your_anon_key     # Supabase anonymous key
+VITE_SHOW_AUTH_DEBUG=true                 # Show auth debug information
+```
+
+### Key Configuration Files
+
+#### **backend/supabase/config.toml**
+- **Purpose:** Local Supabase instance configuration
+- **Usage:** Only for local development with `supabase start`
+- **Environment Variables:** References `backend/.env.local` using `env(VARIABLE_NAME)` syntax
+- **OAuth Configuration:** Defines LinkedIn and GitHub OAuth providers for local development
+- **Production:** This file is **NOT used** in Supabase Cloud
+
+#### **backend/.env.local**
+- **Purpose:** Environment variables for local Supabase development
+- **Usage:** Automatically loaded by Supabase CLI when using `config.toml`
+- **Contains:** OAuth client IDs, secrets, and other sensitive configuration
+- **Production:** Variables must be set separately in Supabase Cloud Dashboard
+
+#### **ui/.env.local vs ui/.env.production**
+- **Local:** Uses `http://localhost:54321` for local Supabase instance
+- **Production:** Uses `https://your-project.supabase.co` for cloud instance
+- **Feature Flags:** Different debug and development settings per environment
 
 #### **Hour 3-4: Authentication & Database Setup**
 ```sql
