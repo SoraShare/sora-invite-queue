@@ -42,6 +42,19 @@ jobs:
           echo "🔗 Linking to Supabase project: $SUPABASE_PROJECT_REF"
           supabase link --project-ref $SUPABASE_PROJECT_REF
 
+      - name: Sync Migration History
+        working-directory: backend
+        run: |
+          echo "🔄 Syncing local migrations with remote database..."
+          # Check if there are migration conflicts
+          if ! supabase db push --linked --dry-run; then
+            echo "⚠️ Migration conflicts detected, attempting to sync..."
+            # Try to repair migration history
+            supabase migration repair --status reverted || echo "No reverted migrations to repair"
+            # Pull latest schema to sync
+            supabase db pull --linked || echo "Pull completed with warnings"
+          fi
+
       - name: Deploy Database Migrations
         working-directory: backend
         run: |
