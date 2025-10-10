@@ -5,6 +5,8 @@ import { RequestCode } from '@/components/RequestCode';
 import { DonateCode } from '@/components/DonateCode';
 import { Homepage } from '@/components/Homepage';
 import { Layout } from '@/components/Layout';
+import { UserDropdown } from '@/components/UserDropdown';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueue } from '@/hooks/useQueue';
 import toast, { Toaster } from 'react-hot-toast';
@@ -20,13 +22,13 @@ const AuthPage = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
       <div className="text-center">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
             Join the Sora Invite Queue
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto px-4">
             Connect with your LinkedIn account or email to join our verified community 
             and access the fair distribution queue for Sora invitations.
           </p>
@@ -36,34 +38,34 @@ const AuthPage = () => {
 
         {/* Public Stats */}
         {stats && (
-          <div className="mt-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">
+          <div className="mt-8 w-full">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 text-center">
               Community Statistics
             </h3>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 max-w-full mx-auto">
               <div className="card text-center">
-                <div className="text-2xl font-bold text-primary-600">
+                <div className="text-lg sm:text-2xl font-bold text-primary-600">
                   {stats.totalInQueue}
                 </div>
-                <div className="text-sm text-gray-600">In Queue</div>
+                <div className="text-xs sm:text-sm text-gray-600">In Queue</div>
               </div>
               <div className="card text-center">
-                <div className="text-2xl font-bold text-primary-600">
+                <div className="text-lg sm:text-2xl font-bold text-primary-600">
                   {stats.totalProcessed}
                 </div>
-                <div className="text-sm text-gray-600">Processed</div>
+                <div className="text-xs sm:text-sm text-gray-600">Processed</div>
               </div>
               <div className="card text-center">
-                <div className="text-2xl font-bold text-primary-600">
+                <div className="text-lg sm:text-2xl font-bold text-primary-600">
                   {stats.availableCodes}
                 </div>
-                <div className="text-sm text-gray-600">Available</div>
+                <div className="text-xs sm:text-sm text-gray-600">Available</div>
               </div>
               <div className="card text-center">
-                <div className="text-2xl font-bold text-primary-600">
+                <div className="text-lg sm:text-2xl font-bold text-primary-600">
                   {stats.returnRate}%
                 </div>
-                <div className="text-sm text-gray-600">Return Rate</div>
+                <div className="text-xs sm:text-sm text-gray-600">Return Rate</div>
               </div>
             </div>
           </div>
@@ -105,21 +107,24 @@ const Navigation = () => {
     <header className="bg-white shadow-sm flex-shrink-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-between items-center">
-          <div>
+          {/* Logo section */}
+          <div className="flex-shrink-0">
             <Link to="/" className="block">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
                 SoraShare
               </h1>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">
                 Fair, transparent access to OpenAI Sora invitations
               </p>
             </Link>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Desktop Navigation and User section */}
+          <div className="flex items-center gap-6">
             {user ? (
               <>
-                <nav className="flex items-center gap-2">
+                {/* Desktop Navigation - Hidden on mobile */}
+                <nav className="hidden md:flex items-center gap-2">
                   <Link
                     to="/request"
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
@@ -129,7 +134,7 @@ const Navigation = () => {
                     }`}
                   >
                     <Download className="w-4 h-4" />
-                    Request Code
+                    <span className="whitespace-nowrap">Request Code</span>
                   </Link>
                   <Link
                     to="/donate"
@@ -140,34 +145,28 @@ const Navigation = () => {
                     }`}
                   >
                     <Gift className="w-4 h-4" />
-                    Donate Code
+                    <span className="whitespace-nowrap">Donate Code</span>
                   </Link>
                 </nav>
 
+                {/* User section */}
                 <div className="flex items-center gap-3">
-                  <div className="text-sm text-gray-600">
-                    Welcome, {user.user_metadata?.full_name || user.user_metadata?.name || user.email}
-                  </div>
-                  {user.user_metadata?.avatar_url ? (
-                    <img
-                      src={user.user_metadata.avatar_url}
-                      alt="Profile"
-                      className="w-8 h-8 rounded-full"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                      <span className="text-sm font-medium text-primary-600">
-                        {(user.user_metadata?.full_name || user.user_metadata?.name || user.email)?.charAt(0).toUpperCase()}
-                      </span>
+                  {/* Desktop: Welcome text + Sign out button */}
+                  <div className="hidden md:flex items-center gap-3">
+                    <div className="text-sm text-gray-600 truncate max-w-[200px]">
+                      Welcome, {user.user_metadata?.full_name || user.user_metadata?.name || user.email}
                     </div>
-                  )}
-                  <button
-                    onClick={handleSignOut}
-                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-100"
-                    aria-label="Sign out of your account"
-                  >
-                    Sign out
-                  </button>
+                    <button
+                      onClick={handleSignOut}
+                      className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-100"
+                      aria-label="Sign out of your account"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+
+                  {/* Mobile + Desktop: User Avatar with Dropdown */}
+                  <UserDropdown user={user} onSignOut={handleSignOut} />
                 </div>
               </>
             ) : (
@@ -253,9 +252,10 @@ function App() {
         <Route path="/auth" element={
           <Layout>
             <Navigation />
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden w-full">
               <AuthPage />
             </main>
+            <MobileBottomNav isVisible={false} />
           </Layout>
         } />
         
@@ -264,11 +264,12 @@ function App() {
           element={
             <Layout>
               <Navigation />
-              <main className="flex-1 overflow-y-auto">
+              <main className="flex-1 overflow-y-auto overflow-x-hidden w-full">
                 <ProtectedRoute>
                   <RequestCode />
                 </ProtectedRoute>
               </main>
+              <MobileBottomNav isVisible={!!user} />
             </Layout>
           } 
         />
@@ -278,11 +279,12 @@ function App() {
           element={
             <Layout>
               <Navigation />
-              <main className="flex-1 overflow-y-auto">
+              <main className="flex-1 overflow-y-auto overflow-x-hidden w-full">
                 <ProtectedRoute>
                   <DonateCode />
                 </ProtectedRoute>
               </main>
+              <MobileBottomNav isVisible={!!user} />
             </Layout>
           } 
         />

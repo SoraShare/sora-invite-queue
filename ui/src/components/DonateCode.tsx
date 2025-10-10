@@ -64,15 +64,15 @@ export const DonateCode = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-          <Gift className="w-8 h-8 text-green-600" />
+        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full mb-4">
+          <Gift className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
           Donate Invitation Codes
         </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
           Help the community by sharing your unused Sora invitation codes. 
           Your contribution helps others access this amazing AI tool fairly.
         </p>
