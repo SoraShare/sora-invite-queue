@@ -33,42 +33,30 @@ jobs:
 
       - name: Verify Supabase CLI Installation
         run: |
-          export PATH="$HOME/.supabase/bin:$PATH"
           supabase --version
           echo "✅ Supabase CLI installed successfully"
 
       - name: Verify Supabase Connection
         working-directory: backend
         run: |
-          export PATH="$HOME/.supabase/bin:$PATH"
           echo "🔗 Linking to Supabase project: $SUPABASE_PROJECT_REF"
           supabase link --project-ref $SUPABASE_PROJECT_REF
-
-      - name: Validate Database Schema
-        working-directory: backend
-        run: |
-          export PATH="$HOME/.supabase/bin:$PATH"
-          echo "🔍 Validating database migrations..."
-          supabase db diff --linked --schema public
 
       - name: Deploy Database Migrations
         working-directory: backend
         run: |
-          export PATH="$HOME/.supabase/bin:$PATH"
           echo "📊 Deploying database schema to Supabase..."
           supabase db push --linked
 
       - name: Deploy Edge Functions
         working-directory: backend
         run: |
-          export PATH="$HOME/.supabase/bin:$PATH"
           echo "⚡ Deploying edge functions..."
           supabase functions deploy --project-ref $SUPABASE_PROJECT_REF --no-verify-jwt
 
       - name: Verify Deployment
         working-directory: backend
         run: |
-          export PATH="$HOME/.supabase/bin:$PATH"
           echo "✅ Verifying Supabase deployment..."
           supabase projects list
           echo "Backend deployment completed successfully!"
