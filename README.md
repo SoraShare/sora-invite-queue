@@ -795,3 +795,41 @@ Create: [specific UI component or page]"
 ---
 
 *This README.md provides complete project context for rapid MVP development and serves as the foundation for all implementation prompts. The focus is on immediate deployment and user validation while maintaining architectural flexibility for future scaling.*
+
+## ✨ Hall of Generosity & Code Lineage Trace
+
+### Feature Overview
+- **Description:** Every invitation code distributed through the Sora Invite Queue is tracked with a full lineage tree, showing all users who donated or enabled access for others. This "Hall of Generosity" builds reputation and transparency, allowing recipients to see and follow the chain of generosity behind their code.
+- **Business Value:** Encourages community participation, builds trust, and recognizes contributors. Enables users to connect with donors via LinkedIn and GitHub, fostering a network of responsible AI creators.
+
+### Technical Implementation
+- **Database:** Each `invitation_code` record stores references to both the donor (`submitted_by`) and recipient (`allocated_to`). A recursive query or view allows tracing the lineage of each code back to the original donor(s).
+- **Frontend:** The user dashboard and code notification emails display the full trace-back tree for each code, including profile links for each donor.
+- **Email Notification:** When a user receives a code, the notification email includes:
+  - The full lineage of the code (all donors in the chain)
+  - LinkedIn and GitHub profile links for each donor
+  - Option to follow or thank previous donors
+
+#### Example Email Notification Content
+```
+Congratulations! You've received a Sora invitation code.
+
+This code was made possible by the generosity of the following community members:
+- Alice Zhang (LinkedIn | GitHub)
+- Bob Lee (LinkedIn | GitHub)
+- Carol Smith (LinkedIn | GitHub)
+
+Explore their profiles and join the Hall of Generosity!
+```
+
+### Hall of Generosity Page
+- **Display:** Interactive tree or list showing all code lineages, with profile links and contribution counts.
+- **Recognition:** Top donors and contributors are highlighted, building reputation and encouraging further sharing.
+
+### API & Query Example
+- **Trace-back Query:** For a given code, recursively fetch all previous donors and their profiles.
+- **Frontend Integration:** Display the lineage tree in the dashboard and include it in code notification emails.
+
+---
+
+This feature strengthens the community-driven mission of Sora Invite Queue, making every code allocation transparent, traceable, and socially rewarding.
