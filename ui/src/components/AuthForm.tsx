@@ -54,7 +54,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
       const result = await signInWithLinkedIn();
       
       if (result.success) {
-        toast.success('Signed in with LinkedIn successfully!');
         onAuthSuccess?.();
         navigate('/request');
       } else {
@@ -70,7 +69,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
       const result = await signInWithGitHub();
       
       if (result.success) {
-        toast.success('Signed in with GitHub successfully!');
         onAuthSuccess?.();
         navigate('/request');
       } else {
