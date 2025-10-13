@@ -5,8 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
 import { Clock } from 'lucide-react';
 
-export const RequestCode = () => {
-  const { user } = useAuth();
+export const RequestCode = ({ authState }: { authState: ReturnType<typeof useAuth> }) => {
+  const { user } = authState || useAuth();
   
   const {
     position,

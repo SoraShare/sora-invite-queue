@@ -1,6 +1,7 @@
 import { Clock, Users, TrendingUp, Zap } from 'lucide-react';
 import { QueuePosition, QueueStats } from '@/types/queue';
 import { config } from '@/lib/supabase';
+import { CommunityStats } from '@/components/CommunityStats';
 
 interface QueueCardProps {
   position: QueuePosition | null;
@@ -169,25 +170,12 @@ export function QueueCard({
         </div>
       )}
 
-      {/* Community Stats */}
+      {/* Community Statistics */}
       {config.communityReturnRateEnabled && (
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>Community return rate</span>
-            <span className="font-medium text-gray-900">
-              {isLoading ? '...' : `${stats?.returnRate ?? 0}%`}
-            </span>
-          </div>
-          <div className="mt-2 bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-success-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min(stats?.returnRate ?? 0, 100)}%` }}
-            />
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Higher return rates mean faster queue processing for everyone
-          </p>
-        </div>
+        <CommunityStats 
+          stats={stats} 
+          className="mt-6 pt-4 border-t border-gray-200" 
+        />
       )}
     </div>
   );

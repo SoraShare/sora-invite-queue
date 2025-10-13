@@ -20,8 +20,8 @@ export const AppFooter = ({ variant = 'simple' }: AppFooterProps) => {
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <nav className="flex gap-6">
                 <Link to="/" className="hover:text-white transition-colors">Home</Link>
-                <Link to="/auth" className="hover:text-white transition-colors">Get Code</Link>
-                <Link to="/auth" className="hover:text-white transition-colors">Donate Code</Link>
+                <Link to="/request" className="hover:text-white transition-colors">Get Code</Link>
+                <Link to="/donate" className="hover:text-white transition-colors">Donate Code</Link>
                 <a href="https://github.com/SoraShare/sora-invite-queue" className="hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">GitHub</a>
                 <a href="https://linkedin.com/company/sorashare" className="hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">LinkedIn</a>
               </nav>

@@ -3,8 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
 import { Gift, Send, CheckCircle, AlertCircle, Plus, Trash2 } from 'lucide-react';
 
-export const DonateCode = () => {
-  const { user } = useAuth();
+export const DonateCode = ({ authState }: { authState: ReturnType<typeof useAuth> }) => {
+  const { user } = authState || useAuth();
   const [codes, setCodes] = useState(['']);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

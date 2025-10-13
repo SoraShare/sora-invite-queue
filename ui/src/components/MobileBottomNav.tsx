@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Download, Gift, Home } from 'lucide-react';
+import { Download, Gift, Home, User } from 'lucide-react';
 
 interface MobileBottomNavProps {
   isVisible: boolean;
@@ -15,19 +15,19 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ isVisible }) =
 
   const navItems = [
     {
-      path: '/',
-      icon: Home,
-      label: 'Home'
-    },
-    {
       path: '/request',
       icon: Download,
-      label: 'Request Code'
+      label: 'Request'
     },
     {
       path: '/donate',
       icon: Gift,
-      label: 'Donate Code'
+      label: 'Donate'
+    },
+    {
+      path: '/account',
+      icon: User,
+      label: 'Account'
     }
   ];
 

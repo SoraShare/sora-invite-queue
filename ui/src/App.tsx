@@ -1,232 +1,20 @@
-import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
-import { AuthForm } from '@/components/AuthForm';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { RequestCode } from '@/components/RequestCode';
 import { DonateCode } from '@/components/DonateCode';
 import { Homepage } from '@/components/Homepage';
 import { Layout } from '@/components/Layout';
-import { UserDropdown } from '@/components/UserDropdown';
+import { Navigation } from '@/components/Navigation';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
+import { AuthDebug } from '@/components/AuthDebug';
+import { UserPage } from '@/components/UserPage';
 import { useAuth } from '@/hooks/useAuth';
-import { useQueue } from '@/hooks/useQueue';
-import toast, { Toaster } from 'react-hot-toast';
-import { Download, Gift } from 'lucide-react';
-
-// Auth Page Component
-const AuthPage = () => {
-  const { user } = useAuth();
-  const { stats } = useQueue(user?.id);
-
-  if (user) {
-    return <Navigate to="/request" replace />;
-  }
-
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-      <div className="text-center">
-        <div className="mb-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
-            Join the Sora Invite Queue
-          </h2>
-          <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto px-4">
-            Connect with your LinkedIn account or email to join our verified community 
-            and access the fair distribution queue for Sora invitations.
-          </p>
-        </div>
-        
-        <AuthForm />
-
-        {/* Public Stats */}
-        {stats && (
-          <div className="mt-8 w-full">
-            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 text-center">
-              Community Statistics
-            </h3>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 max-w-full mx-auto">
-              <div className="card text-center">
-                <div className="text-lg sm:text-2xl font-bold text-primary-600">
-                  {stats.totalInQueue}
-                </div>
-                <div className="text-xs sm:text-sm text-gray-600">In Queue</div>
-              </div>
-              <div className="card text-center">
-                <div className="text-lg sm:text-2xl font-bold text-primary-600">
-                  {stats.totalProcessed}
-                </div>
-                <div className="text-xs sm:text-sm text-gray-600">Processed</div>
-              </div>
-              <div className="card text-center">
-                <div className="text-lg sm:text-2xl font-bold text-primary-600">
-                  {stats.availableCodes}
-                </div>
-                <div className="text-xs sm:text-sm text-gray-600">Available</div>
-              </div>
-              <div className="card text-center">
-                <div className="text-lg sm:text-2xl font-bold text-primary-600">
-                  {stats.returnRate}%
-                </div>
-                <div className="text-xs sm:text-sm text-gray-600">Return Rate</div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Navigation Component
-const Navigation = () => {
-  const { user, signOut, isLoading } = useAuth();
-  const location = useLocation();
-
-  const handleSignOut = async () => {
-    console.log('Sign out clicked, current user:', user);
-    try {
-      const result = await signOut();
-      console.log('Sign out result:', result);
-      
-      if (result.success) {
-        toast.success('Signed out successfully');
-        // Force reload to clear any remaining state
-        setTimeout(() => {
-          window.location.href = '/auth';
-        }, 100);
-      } else {
-        toast.error(result.error || 'Error signing out');
-      }
-    } catch (error) {
-      console.error('Sign out error:', error);
-      toast.error('Sign out failed');
-    }
-  };
-
-  const isActive = (path: string) => location.pathname === path;
-
-  return (
-    <header className="bg-white shadow-sm flex-shrink-0">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex justify-between items-center">
-          {/* Logo section */}
-          <div className="flex-shrink-0">
-            <Link to="/" className="block">
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-                SoraShare
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">
-                Fair, transparent access to OpenAI Sora invitations
-              </p>
-            </Link>
-          </div>
-
-          {/* Desktop Navigation and User section */}
-          <div className="flex items-center gap-6">
-            {user ? (
-              <>
-                {/* Desktop Navigation - Hidden on mobile */}
-                <nav className="hidden md:flex items-center gap-2">
-                  <Link
-                    to="/request"
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                      isActive('/request')
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Download className="w-4 h-4" />
-                    <span className="whitespace-nowrap">Request Code</span>
-                  </Link>
-                  <Link
-                    to="/donate"
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                      isActive('/donate')
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Gift className="w-4 h-4" />
-                    <span className="whitespace-nowrap">Donate Code</span>
-                  </Link>
-                </nav>
-
-                {/* User section */}
-                <div className="flex items-center gap-3">
-                  {/* Desktop: Welcome text + Sign out button */}
-                  <div className="hidden md:flex items-center gap-3">
-                    <div className="text-sm text-gray-600 truncate max-w-[200px]">
-                      Welcome, {user.user_metadata?.full_name || user.user_metadata?.name || user.email}
-                    </div>
-                    <button
-                      onClick={handleSignOut}
-                      className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-100"
-                      aria-label="Sign out of your account"
-                    >
-                      Sign out
-                    </button>
-                  </div>
-
-                  {/* Mobile + Desktop: User Avatar with Dropdown */}
-                  <UserDropdown user={user} onSignOut={handleSignOut} />
-                </div>
-              </>
-            ) : (
-              <div className="text-sm text-gray-600">
-                Sign in to join the queue
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-};
+import { Toaster } from 'react-hot-toast';
 
 function App() {
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const authState = useAuth();
+  const { user, isLoading: isAuthLoading, isAuthenticated } = authState;
   const isDebugEnabled = import.meta.env.VITE_SHOW_AUTH_DEBUG === 'true';
-  const AuthDebug = () => {
-    const { isAuthenticated } = useAuth();
-    
-    const clearAuthState = () => {
-      // Clear all possible auth-related localStorage keys
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.includes('supabase') || key.includes('auth')) {
-          localStorage.removeItem(key);
-        }
-      });
-      // Force reload
-      window.location.reload();
-    };
-
-    const forceNavigate = (path: string) => {
-      window.location.href = path;
-    };
-
-    return (
-      <div className="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-2 rounded text-xs z-50 max-w-xs">
-        <div>User: {user?.id ? `${user.id.substring(0, 8)}...` : 'null'}</div>
-        <div>Email: {user?.email || 'null'}</div>
-        <div>Loading: {isAuthLoading ? 'yes' : 'no'}</div>
-        <div>Authenticated: {isAuthenticated ? 'yes' : 'no'}</div>
-        <div>Path: {window.location.pathname}</div>
-        <div className="flex gap-1 mt-2">
-          <button 
-            onClick={clearAuthState}
-            className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-          >
-            Clear Auth
-          </button>
-          <button 
-            onClick={() => forceNavigate('/request')}
-            className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-          >
-            Force /request
-          </button>
-        </div>
-      </div>
-    );
-  };
 
   if (isAuthLoading) {
     return (
@@ -235,7 +23,7 @@ function App() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
-        {isDebugEnabled && <AuthDebug />}
+        {isDebugEnabled && <AuthDebug authState={authState} />}
       </div>
     );
   }
@@ -245,17 +33,17 @@ function App() {
       <Toaster position="top-right" />
       
       <Routes>
-        {/* Homepage - Public (standalone layout) */}
+        {/* Homepage - Public (standalone layout) - now handles auth redirects */}
         <Route path="/" element={<Homepage />} />
         
         {/* All other routes with navigation layout */}
-        <Route path="/auth" element={
+        <Route path="/account" element={
           <Layout>
-            <Navigation />
+            <Navigation authState={authState} />
             <main className="flex-1 overflow-y-auto overflow-x-hidden w-full">
-              <AuthPage />
+              <UserPage authState={authState} />
             </main>
-            <MobileBottomNav isVisible={false} />
+            <MobileBottomNav isVisible={!!user} />
           </Layout>
         } />
         
@@ -263,10 +51,10 @@ function App() {
           path="/request" 
           element={
             <Layout>
-              <Navigation />
+              <Navigation authState={authState} />
               <main className="flex-1 overflow-y-auto overflow-x-hidden w-full">
-                <ProtectedRoute>
-                  <RequestCode />
+                <ProtectedRoute authState={authState}>
+                  <RequestCode authState={authState} />
                 </ProtectedRoute>
               </main>
               <MobileBottomNav isVisible={!!user} />
@@ -278,10 +66,25 @@ function App() {
           path="/donate" 
           element={
             <Layout>
-              <Navigation />
+              <Navigation authState={authState} />
               <main className="flex-1 overflow-y-auto overflow-x-hidden w-full">
-                <ProtectedRoute>
-                  <DonateCode />
+                <ProtectedRoute authState={authState}>
+                  <DonateCode authState={authState} />
+                </ProtectedRoute>
+              </main>
+              <MobileBottomNav isVisible={!!user} />
+            </Layout>
+          } 
+        />
+        
+        <Route 
+          path="/account" 
+          element={
+            <Layout>
+              <Navigation authState={authState} />
+              <main className="flex-1 overflow-y-auto overflow-x-hidden w-full">
+                <ProtectedRoute authState={authState}>
+                  <UserPage authState={authState} />
                 </ProtectedRoute>
               </main>
               <MobileBottomNav isVisible={!!user} />
@@ -294,7 +97,7 @@ function App() {
       </Routes>
 
       {/* Debug info */}
-      {isDebugEnabled && <AuthDebug />}
+      {isDebugEnabled && <AuthDebug authState={authState} />}
     </>
   );
 }

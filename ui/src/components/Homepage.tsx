@@ -1,15 +1,34 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { ArrowRight, Users, Share2, Sparkles, Github, Linkedin, Heart, Shield, Zap } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { AppFooter } from './AppFooter';
+import { useAuth } from '@/hooks/useAuth';
 
 export const Homepage = () => {
   const [isAnimated, setIsAnimated] = useState(false);
+  const { user, isLoading } = useAuth();
 
-  // Trigger animation after component mounts
+  // Trigger animation after component mounts - MUST be before any conditional returns
   useEffect(() => {
     setTimeout(() => setIsAnimated(true), 100);
   }, []);
+
+  // Redirect authenticated users to /request
+  if (!isLoading && user) {
+    return <Navigate to="/request" replace />;
+  }
+
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-violet-50 flex flex-col items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-violet-50">
@@ -22,13 +41,7 @@ export const Homepage = () => {
             </Link>
             <div className="flex items-center gap-4">
               <Link
-                to="/auth"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/auth"
+                to="/account"
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:from-blue-700 hover:to-violet-700 transition-all duration-300"
               >
                 Get Started
@@ -75,14 +88,14 @@ export const Homepage = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
               <Link
-                to="/auth"
+                to="/request"
                 className="group inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-violet-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Get Invitation Code
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
-                to="/auth"
+                to="/donate"
                 className="group inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm text-gray-800 px-8 py-4 rounded-xl font-semibold text-lg border border-gray-200 hover:bg-white hover:border-gray-300 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <Heart className="w-5 h-5 text-red-500" />
@@ -263,14 +276,14 @@ export const Homepage = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
             <Link
-              to="/auth"
+              to="/request"
               className="group inline-flex items-center gap-2 bg-white text-gray-800 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               Get Code
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
-              to="/auth"
+              to="/donate"
               className="group inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-xl font-semibold text-lg border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <Heart className="w-5 h-5 text-red-300" />
